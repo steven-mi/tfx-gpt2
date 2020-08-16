@@ -29,13 +29,10 @@ airflow webserver
 ```
 
 **Run pipeline with Kubeflow**
-```bash
-cd examples
-python kubeflow-example.py
-# upload pipeline to Kubeflow
+```
+TODO
 ```
 
 ## TODO
 - test kubeflow example
 - create component for exporting model to TFServing
-- resume training
