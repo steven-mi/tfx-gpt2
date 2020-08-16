@@ -30,11 +30,10 @@ def load_dataset(enc, path, combine, encoding=None):
                 for item in npz.files:
                     token_chunks.append(npz[item])
         elif path.endswith('.csv'):
-            start_token = "<|startoftext|>"
             end_token = "<|endoftext|>"
             df = pd.read_csv(path)
             for index, row in df.iterrows():
-                raw_text += start_token + row["text"] + end_token + "\n"
+                raw_text += row["text"] + end_token + "\n"
         else:
             # Plain text
             with open(path, 'r', encoding=encoding) as fp:
