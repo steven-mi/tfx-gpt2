@@ -8,7 +8,7 @@ from tfx.orchestration.beam.beam_dag_runner import BeamDagRunner
 
 model_name = "117M"
 
-text_path = "/PATH/TO/DATASET"
+text_path = "./data"
 
 train_config = {'num_iterations': 100000,  # number of iterations
                 'batch_size': 1,  # Batch size
@@ -28,15 +28,13 @@ train_config = {'num_iterations': 100000,  # number of iterations
                 'save_every': 1000,  # Write a checkpoint every N steps
                 }
 
-output_dir = "/PATH/TO/OUTPUT/DIR"
+output_dir = "./output"
 
 pipeline = create_pipeline(pipeline_name=os.path.basename(__file__),
                            pipeline_root=output_dir,
                            model_name=model_name,
                            text_path=text_path,
-                           train_config=train_config)
+                           train_config=train_config,
+                           enable_cache=True)
 
-airflow_config = {'schedule_interval': "@once",  # every 30 minutes
-                  'start_date': datetime(1998, 2, 23, 8),  # year, month, day, hour
-                  }
 DAG = BeamDagRunner().run(pipeline)

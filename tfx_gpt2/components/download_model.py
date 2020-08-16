@@ -30,8 +30,6 @@ class Executor(base_executor.BaseExecutor):
         model_name = exec_properties["model_name"]
 
         subdir = os.path.join('models', model_name)
-        if not os.path.exists(subdir):
-            os.makedirs(subdir)
         subdir = subdir.replace('\\', '/')  # needed for Windows
 
         for filename in ['checkpoint', 'encoder.json', 'hparams.json', 'model.ckpt.data-00000-of-00001',

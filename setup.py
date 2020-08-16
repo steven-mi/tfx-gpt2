@@ -28,16 +28,14 @@ setup(
     include_package_data=True,
     python_requires=">=3.6.*",
     install_requires=["fire>=0.1.3",
-                      "regex==2017.4.5"
-                      "requests==2.21.0",
-                      "tqdm==4.31.1",
+                      "regex",
+                      "requests",
+                      "tqdm",
                       "toposort==1.5",
-                      "tensorflow-gpu==1.12.0"],
+                      "tensorflow==1.15"
+                      "tfx==0.15.0"],
     license=about['__license__'],
     zip_safe=False,
-    entry_points={
-        'console_scripts': ['py-package-template=tfx_gpt2.entry_points:main'],
-    },
     classifiers=[
         'Development Status :: 4 - Beta',
         'Intended Audience :: Developers',
