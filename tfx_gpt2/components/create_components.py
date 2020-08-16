@@ -3,6 +3,7 @@
 from tfx_gpt2.components.create_dataset import CreateDataset
 from tfx_gpt2.components.download_model import DownloadPretrainedModel
 from tfx_gpt2.components.train_gpt2 import TrainGPT2
+from tfx_gpt2.components.export_for_tfserving import ExportToTFServing
 
 
 def create_components(model_name, text_path, train_config, encoding='utf-8', combine=50000):
@@ -19,7 +20,10 @@ def create_components(model_name, text_path, train_config, encoding='utf-8', com
                            train_config=train_config,
                            combine=combine,
                            encoding=encoding)
-
+    export_tfserving = ExportToTFServing(model_path=pretrained_model.outputs["model_path"],
+                                         checkpoint_dir=train_gpt2.outputs["checkpoint_dir"],
+                                         train_config=train_config)
     return [create_dataset,
             pretrained_model,
-            train_gpt2]
+            train_gpt2,
+            export_tfserving]

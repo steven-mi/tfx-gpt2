@@ -1,7 +1,3 @@
-#!/usr/bin/env python3
-# Usage:
-#  PYTHONPATH=src ./train --dataset <file|directory|glob>
-
 import logging
 import json
 import os
@@ -31,8 +27,6 @@ from tfx.types.artifact_utils import get_single_uri
 
 from tfx.types.component_spec import ChannelParameter
 from tfx.types.component_spec import ExecutionParameter
-
-SAMPLE_DIR = 'samples'
 
 
 def randomize(context, hparams, p):
@@ -273,8 +267,8 @@ class TrainGPT2(base_component.BaseComponent):
                  train_config: Dict,
                  combine: int = 50000,
                  encoding: Text = 'utf-8'):
-        checkpoint_dir = external_input("DownloadPretrainedModel")
-        sample_dir = external_input("DownloadPretrainedModel")
+        checkpoint_dir = external_input("TrainGPT2")
+        sample_dir = external_input("TrainGPT2")
 
         spec = TrainGPT2Spec(dataset_path=dataset_path,
                              model_path=model_path,

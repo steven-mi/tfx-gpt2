@@ -35,4 +35,3 @@ TODO
 
 ## TODO
 - test kubeflow example
-- create component for exporting model to TFServing
