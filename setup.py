@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import os
+import setuptools
 from setuptools import setup
 
 # get key package details from tfx_gpt2/__version__.py
@@ -24,7 +25,7 @@ setup(
     author=about['__author__'],
     author_email=about['__author_email__'],
     url=about['__url__'],
-    packages=['tfx_gpt2'],
+    packages=setuptools.find_packages(),
     include_package_data=True,
     python_requires=">=3.6.*",
     install_requires=["fire>=0.1.3",
@@ -32,7 +33,7 @@ setup(
                       "requests",
                       "tqdm",
                       "toposort==1.5",
-                      "tensorflow==1.15"
+                      "tensorflow==1.15",
                       "tfx==0.15.0"],
     license=about['__license__'],
     zip_safe=False,

@@ -7,9 +7,13 @@ from tfx_gpt2 import create_pipeline
 from kfp import onprem
 from tfx.orchestration.kubeflow import kubeflow_dag_runner
 
+persistent_volume_claim = 'tfx-pvc'
+persistent_volume = 'tfx-pv'
+persistent_volume_mount = '/mnt'
+
 model_name = "117M"
 
-text_path = "/PATH/TO/DATASET"
+text_path = os.path.join(persistent_volume_mount, "data")
 
 train_config = {'num_iterations': 100000,  # number of iterations
                 'batch_size': 1,  # Batch size
@@ -29,45 +33,23 @@ train_config = {'num_iterations': 100000,  # number of iterations
                 'save_every': 1000,  # Write a checkpoint every N steps
                 }
 
-output_dir = "/PATH/TO/OUTPUT/DIR"
-
 pipeline = create_pipeline(pipeline_name=os.path.basename(__file__),
-                           pipeline_root=output_dir,
+                           pipeline_root=persistent_volume_mount,
                            model_name=model_name,
                            text_path=text_path,
                            train_config=train_config)
 
-airflow_config = {'schedule_interval': "@once",  # every 30 minutes
-                  'start_date': datetime(1998, 2, 23, 8),  # year, month, day, hour
-                  }
-
-# Metadata config. The defaults works work with the installation of
-# KF Pipelines using Kubeflow. If installing KF Pipelines using the
-# lightweight deployment option, you may need to override the defaults.
-metadata_config = kubeflow_dag_runner.get_default_kubeflow_metadata_config()
-
-# This pipeline automatically injects the Kubeflow TFX image if the
-# environment variable 'KUBEFLOW_TFX_IMAGE' is defined. Currently, the tfx
-# cli tool exports the environment variable to pass to the pipelines.
-tfx_image = os.environ.get('KUBEFLOW_TFX_IMAGE', None)
-
-# This sample assumes a persistent volume (PV) is mounted as follows. To use
-# InfraValidator with PVC, its access mode should be ReadWriteMany.
-_persistent_volume_claim = 'my-pvc'
-_persistent_volume = 'my-pv'
-_persistent_volume_mount = '/mnt'
-
 runner_config = kubeflow_dag_runner.KubeflowDagRunnerConfig(
-    kubeflow_metadata_config=metadata_config,
-    # Specify custom docker image to use.
-    tfx_image=tfx_image,
+    # Metadata config. The defaults works work with the installation of
+    # KF Pipelines using Kubeflow. If installing KF Pipelines using the
+    # lightweight deployment option, you may need to override the defaults.
+    kubeflow_metadata_config=kubeflow_dag_runner.get_default_kubeflow_metadata_config(),
     pipeline_operator_funcs=(
         # If running on K8s Engine (GKE) on Google Cloud Platform (GCP),
         # kubeflow_dag_runner.get_default_pipeline_operator_funcs() provides
         # default configurations specifically for GKE on GCP, such as secrets.
         [
-            onprem.mount_pvc(_persistent_volume_claim, _persistent_volume,
-                             _persistent_volume_mount)
+            onprem.mount_pvc(persistent_volume_claim, persistent_volume,
+                             persistent_volume_mount)
         ]))
-
-kubeflow_dag_runner.KubeflowDagRunner(config=runner_config)
+kubeflow_dag_runner.KubeflowDagRunner(config=runner_config).run(pipeline)

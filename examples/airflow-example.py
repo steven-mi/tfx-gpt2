@@ -9,7 +9,7 @@ from tfx.orchestration.airflow.airflow_dag_runner import AirflowPipelineConfig
 
 model_name = "117M"
 
-text_path = "./data"
+text_path = os.path.join(os.environ['AIRFLOW_HOME'], "data")
 
 train_config = {'num_iterations': 100000,  # number of iterations
                 'batch_size': 1,  # Batch size
@@ -29,7 +29,7 @@ train_config = {'num_iterations': 100000,  # number of iterations
                 'save_every': 1000,  # Write a checkpoint every N steps
                 }
 
-output_dir = "./output"
+output_dir = os.path.join(os.environ['AIRFLOW_HOME'], "output")
 
 pipeline = create_pipeline(pipeline_name=os.path.basename(__file__),
                            pipeline_root=output_dir,

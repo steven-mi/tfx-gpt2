@@ -4,15 +4,14 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-.
-requests = "*"
-twine = "*"
+tfx-gpt2 = {path = "."}
+kfp = "*"
+apache-airflow = "*"
 
 [dev-packages]
-"flake8" = "*"
-pytest = "*"
-ipython = "*"
-mypy = "*"
+tfx-gpt2 = {path = "."}
+kfp = "*"
+apache-airflow = "*"
 
 [requires]
 python_version = "3.7"
