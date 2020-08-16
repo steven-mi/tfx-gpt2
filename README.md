@@ -8,7 +8,7 @@ In this repository, we take the existing code and transform it into a TFX pipeli
 git clone https://github.com/steven-mi/tfx-gpt2.git
 cd tfx-gtp2
 pipenv install
-pipenv run bash
+pipenv shell
 ```
 
 **Run pipeline with Apache Beam**
