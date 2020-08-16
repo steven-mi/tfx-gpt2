@@ -8,7 +8,7 @@ from tfx.orchestration.beam.beam_dag_runner import BeamDagRunner
 
 model_name = "117M"
 
-text_path = "./data"
+text_path = "./data/test.txt"
 
 train_config = {'num_iterations': 100000,  # number of iterations
                 'batch_size': 1,  # Batch size

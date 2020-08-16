@@ -9,7 +9,7 @@ from tfx.orchestration.airflow.airflow_dag_runner import AirflowPipelineConfig
 
 model_name = "117M"
 
-text_path = os.path.join(os.environ['AIRFLOW_HOME'], "data")
+text_path = os.path.join(os.environ['AIRFLOW_HOME'], "data", "test.txt")
 
 train_config = {'num_iterations': 100000,  # number of iterations
                 'batch_size': 1,  # Batch size
