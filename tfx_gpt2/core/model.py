@@ -81,7 +81,7 @@ def attn(x, scope, n_state, *, past, hparams):
         return merge_states(tf.transpose(x, [0, 2, 1, 3]))
 
     def mask_attn_weights(w):
-        # w has shape [batch, heads, dst_sequence, src_sequence], where information flows from gpt_2 to dst.
+        # w has shape [batch, heads, dst_sequence, src_sequence], where information flows from core to dst.
         _, _, nd, ns = shape_list(w)
         b = attention_mask(nd, ns, dtype=w.dtype)
         b = tf.reshape(b, [1, 1, nd, ns])

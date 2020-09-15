@@ -2,10 +2,10 @@ import os
 
 from datetime import datetime
 
-from tfx_gpt2 import create_pipeline
-
 from tfx.orchestration.airflow.airflow_dag_runner import AirflowDagRunner
 from tfx.orchestration.airflow.airflow_dag_runner import AirflowPipelineConfig
+
+from tfx_gpt2.templates.local_pipeline import create_pipeline
 
 model_name = "117M"
 

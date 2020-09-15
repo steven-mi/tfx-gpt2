@@ -1,16 +1,15 @@
+import pickle
 import logging
 import json
 import os
-import numpy as np
 import tensorflow as tf
 import time
-import tqdm
 from tensorflow.core.protobuf import rewriter_config_pb2
 
-from tfx_gpt2.gpt_2 import model, sample, encoder
-from tfx_gpt2.gpt_2.load_dataset import load_dataset, Sampler
-from tfx_gpt2.gpt_2.accumulate import AccumulatingOptimizer
-from tfx_gpt2.gpt_2 import memory_saving_gradients
+from tfx_gpt2.core import model, sample, encoder
+from tfx_gpt2.core.load_dataset import load_dataset, Sampler
+from tfx_gpt2.core.accumulate import AccumulatingOptimizer
+from tfx_gpt2.core import memory_saving_gradients
 
 from typing import Any, Dict, List, Text
 
@@ -38,14 +37,9 @@ def randomize(context, hparams, p):
         return context
 
 
-def train_gpt2(dataset_path,
-               model_path,
-               model_name,
-               train_config,
-               combine,
-               encoding,
-               checkpoint_dir,
-               sample_dir):
+def train_gpt2(dataset_path, model_path,
+               model_name, train_config, combine, encoding,
+               checkpoint_dir, sample_dir, tensorboard_dir):
     enc = encoder.get_encoder(model_path)
     hparams = model.default_hparams()
     with open(os.path.join(model_path, 'hparams.json')) as f:
@@ -54,11 +48,6 @@ def train_gpt2(dataset_path,
     if train_config["sample_length"] > hparams.n_ctx:
         raise ValueError(
             "Can't get samples longer than window size: %s" % hparams.n_ctx)
-
-    if model_name == '345M':
-        train_config["memory_saving_gradients"] = True
-        if train_config["optimizer"] == 'adam':
-            train_config["only_train_transformer_layers"] = True
 
     config = tf.ConfigProto()
     config.gpu_options.allow_growth = True
@@ -117,7 +106,7 @@ def train_gpt2(dataset_path,
         summaries = tf.summary.merge([summary_lr, summary_loss])
 
         summary_log = tf.summary.FileWriter(
-            os.path.join(checkpoint_dir))
+            os.path.join(tensorboard_dir))
 
         saver = tf.train.Saver(
             var_list=all_vars,
@@ -125,9 +114,11 @@ def train_gpt2(dataset_path,
             keep_checkpoint_every_n_hours=2)
         sess.run(tf.global_variables_initializer())
 
-        # Get fresh GPT weights if new run.
         ckpt = tf.train.latest_checkpoint(
             os.path.join(model_path))
+        if ckpt is None:
+            # Get fresh GPT weights if new run.
+            ckpt = tf.train.latest_checkpoint(os.path.join('models', model_name))
         logging.info('Loading checkpoint', ckpt)
         saver.restore(sess, ckpt)
 
@@ -135,8 +126,8 @@ def train_gpt2(dataset_path,
         chunks = load_dataset(enc, dataset_path, combine, encoding=encoding)
         data_sampler = Sampler(chunks)
         logging.info('dataset has', data_sampler.total_size, 'tokens')
-        logging.info('Training...')
 
+        logging.info('Training...')
         counter = 1
         counter_path = os.path.join(checkpoint_dir, 'counter')
         if os.path.exists(counter_path):
@@ -177,12 +168,12 @@ def train_gpt2(dataset_path,
 
         avg_loss = (0.0, 0.0)
         start_time = time.time()
-
         while counter < train_config["num_iterations"]:
             if counter % train_config["save_every"] == 0:
                 save()
             if counter % train_config["sample_every"] == 0:
                 generate_samples()
+                logging.info(counter)
 
             if train_config["accumulate_gradients"] > 1:
                 sess.run(opt_reset)
@@ -196,10 +187,8 @@ def train_gpt2(dataset_path,
                     feed_dict={context: sample_batch()})
 
             summary_log.add_summary(v_summary, counter)
-
             avg_loss = (avg_loss[0] * 0.99 + v_loss,
                         avg_loss[1] * 0.99 + 1.0)
-
             logging.info('[{counter} | {time:2.2f}] loss={loss:2.2f} avg={avg:2.2f}'.format(
                 counter=counter,
                 time=time.time() - start_time,
@@ -207,6 +196,8 @@ def train_gpt2(dataset_path,
                 avg=avg_loss[0] / avg_loss[1]))
 
             counter += 1
+    return train_config, {"loss": loss,
+                          "avg loss": avg_loss[0] / avg_loss[1]}
 
 
 class Executor(base_executor.BaseExecutor):
@@ -224,15 +215,24 @@ class Executor(base_executor.BaseExecutor):
 
         checkpoint_dir = get_single_uri(output_dict["checkpoint_dir"])
         sample_dir = get_single_uri(output_dict["sample_dir"])
+        tensorboard_dir = get_single_uri(output_dict["tensorboard_dir"])
+        hyperparameter_dir = get_single_uri(output_dict["hyperparameter_dir"])
+        metric_dir = get_single_uri(output_dict["metric_dir"])
+        train_config, metrics = train_gpt2(dataset_path=dataset_path,
+                                           model_path=model_path,
+                                           model_name=model_name,
+                                           train_config=train_config,
+                                           combine=combine,
+                                           encoding=encoding,
+                                           checkpoint_dir=checkpoint_dir,
+                                           sample_dir=sample_dir,
+                                           tensorboard_dir=tensorboard_dir)
 
-        train_gpt2(dataset_path=dataset_path,
-                   model_path=model_path,
-                   model_name=model_name,
-                   train_config=train_config,
-                   combine=combine,
-                   encoding=encoding,
-                   checkpoint_dir=checkpoint_dir,
-                   sample_dir=sample_dir)
+        with open(os.path.join(hyperparameter_dir, 'hyperparameter.pickle'), 'wb') as handle:
+            pickle.dump(train_config, handle, protocol=pickle.HIGHEST_PROTOCOL)
+
+        with open(os.path.join(metric_dir, 'metric.pickle'), 'wb') as handle:
+            pickle.dump(metrics, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
 
 class TrainGPT2Spec(types.ComponentSpec):
@@ -251,8 +251,10 @@ class TrainGPT2Spec(types.ComponentSpec):
 
     OUTPUTS = {
         'checkpoint_dir': ChannelParameter(type=standard_artifacts.ExternalArtifact),
+        'tensorboard_dir': ChannelParameter(type=standard_artifacts.ExternalArtifact),
         'sample_dir': ChannelParameter(type=standard_artifacts.ExternalArtifact),
-
+        'hyperparameter_dir': ChannelParameter(type=standard_artifacts.ExternalArtifact),
+        'metric_dir': ChannelParameter(type=standard_artifacts.ExternalArtifact),
     }
 
 
@@ -269,6 +271,9 @@ class TrainGPT2(base_component.BaseComponent):
                  encoding: Text = 'utf-8'):
         checkpoint_dir = external_input("TrainGPT2")
         sample_dir = external_input("TrainGPT2")
+        tensorboard_dir = external_input("TrainGPT2")
+        hyperparameter_dir = external_input("TrainGPT2")
+        metric_dir = external_input("TrainGPT2")
 
         spec = TrainGPT2Spec(dataset_path=dataset_path,
                              model_path=model_path,
@@ -277,6 +282,9 @@ class TrainGPT2(base_component.BaseComponent):
                              combine=combine,
                              encoding=encoding,
                              checkpoint_dir=checkpoint_dir,
-                             sample_dir=sample_dir)
+                             sample_dir=sample_dir,
+                             hyperparameter_dir=hyperparameter_dir,
+                             metric_dir=metric_dir,
+                             tensorboard_dir=tensorboard_dir)
 
         super(TrainGPT2, self).__init__(spec=spec)

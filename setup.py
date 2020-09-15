@@ -2,7 +2,7 @@
 
 import os
 import setuptools
-from setuptools import setup
+from setuptools import setup, find_packages
 
 # get key package details from tfx_gpt2/__version__.py
 about = {}  # type: ignore
@@ -25,16 +25,16 @@ setup(
     author=about['__author__'],
     author_email=about['__author_email__'],
     url=about['__url__'],
-    packages=setuptools.find_packages(),
+    packages=setuptools.find_packages("tfx_gpt2"),
     include_package_data=True,
     python_requires=">=3.6.*",
-    install_requires=["fire>=0.1.3",
-                      "regex",
+    install_requires=["regex",
                       "requests",
                       "tqdm",
                       "toposort==1.5",
                       "tensorflow==1.15",
-                      "tfx==0.15.0"],
+                      "tfx==0.15.0",
+                      "mlflow"],
     license=about['__license__'],
     zip_safe=False,
     classifiers=[

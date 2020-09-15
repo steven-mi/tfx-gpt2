@@ -6,7 +6,7 @@ import os
 import numpy as np
 import tensorflow as tf
 
-from tfx_gpt2.gpt_2 import model, sample, encoder
+from tfx_gpt2.core import model, sample, encoder
 
 def sample_model(
     model_name='117M',

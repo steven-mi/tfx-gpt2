@@ -3,8 +3,8 @@ import logging
 
 import numpy as np
 
-from tfx_gpt2.gpt_2 import encoder
-from tfx_gpt2.gpt_2.load_dataset import load_dataset
+from tfx_gpt2.core import encoder
+from tfx_gpt2.core.load_dataset import load_dataset
 
 from typing import Any, Dict, List, Text
 

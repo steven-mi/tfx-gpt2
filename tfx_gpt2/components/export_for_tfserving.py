@@ -8,7 +8,7 @@ import tensorflow as tf
 
 from tensorflow.python.saved_model.signature_def_utils_impl import predict_signature_def
 
-from tfx_gpt2.gpt_2 import sample, model
+from tfx_gpt2.core import sample, model
 
 from typing import Any, Dict, List, Text
 
