@@ -1,8 +1,6 @@
 import os
 import glob
 import pickle
-import logging
-
 import mlflow
 
 from typing import Any, Dict, List, Text
@@ -54,7 +52,7 @@ class Executor(base_executor.BaseExecutor):
 class MLFlowImportSpec(types.ComponentSpec):
     PARAMETERS = {
         'model_name': ExecutionParameter(type=Text),
-        'mlflow_tracking_url': ExecutionParameter(type=int),
+        'mlflow_tracking_url': ExecutionParameter(type=Text),
     }
 
     INPUTS = {

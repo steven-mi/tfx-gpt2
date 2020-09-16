@@ -1,22 +1,28 @@
 # GPT-2 in TFX 
 Main work done by [nsheppert/gpt-2](https://github.com/nshepperd/gpt-2)
 
-In this repository, we take the existing code and transform it into a TFX pipeline. The TFX pipeline can then be orchestrated with either Airflow or Kubeflow (not recommended though if Kubeflow needs to be set up). Have a look at `examples` for getting to know how to use this module.
+In this repository, we take the existing code and transform it into a TFX pipeline. The TFX pipeline can then be orchestrated with either Airflow or Kubeflow (not recommended though if Kubeflow needs to be set up). Have a look at `examples` for getting to know how to use this module. Tensorboard is supported can be used for keeping a track during training. Additionally, the complete pipeline creates a model and pushes it into a MLFlow registry. This registry is then the central place where all of your model are stored and where your services will be grabbing the GPT-2 model.
+
+## Why TFX? 
+- TFX is a open source framework for creating production grade end-end machine learning pipelines.
+- It handles a lot of useful things like caching and versioning
 
 ## Getting Started
+
+### Install package
 ```
 git clone https://github.com/steven-mi/tfx-gpt2.git
 cd tfx-gpt2
 pip indstall tfx-gpt2
 ```
 
-**Run pipeline with Apache Beam**
+## Run pipeline with Apache Beam
 ```bash
 cd examples
 python beam-example.py
 ```
 
-**Run pipeline with Airflow**
+## Run with Apache Airflow
 ```bash
 ... setup airflow
 # copy files to dag folder

@@ -1,9 +1,4 @@
-import argparse
-import json
-import os
-import numpy as np
 import tensorflow as tf
-import time
 
 
 class AccumulatingOptimizer(object):

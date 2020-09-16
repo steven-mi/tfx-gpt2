@@ -43,7 +43,7 @@ def create_pipeline(pipeline_name, pipeline_root, model_name, train_config, mlfl
                                  artifact_dir=train_gpt2.outputs["sample_dir"],
                                  hyperparameter_dir=train_gpt2.outputs["hyperparameter_dir"],
                                  metric_dir=train_gpt2.outputs["metric_dir"],
-                                 model_dir=train_gpt2.outputs["export_dir"])
+                                 model_dir=export_tfserving.outputs["export_dir"])
 
     pipeline_root = os.path.join(pipeline_root, 'pipelines', pipeline_name)
     metadata_path = os.path.join(pipeline_root, 'metadata', pipeline_name,

@@ -230,7 +230,7 @@ class Executor(base_executor.BaseExecutor):
 
         with open(os.path.join(hyperparameter_dir, 'hyperparameter.pickle'), 'wb') as handle:
             pickle.dump(train_config, handle, protocol=pickle.HIGHEST_PROTOCOL)
-
+        print(metrics)
         with open(os.path.join(metric_dir, 'metric.pickle'), 'wb') as handle:
             pickle.dump(metrics, handle, protocol=pickle.HIGHEST_PROTOCOL)
 

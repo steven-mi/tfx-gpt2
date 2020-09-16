@@ -33,8 +33,10 @@ setup(
                       "tqdm",
                       "toposort==1.5",
                       "tensorflow==1.15.0",
+                      "installed tensorflow-serving-api==1.15.0"
                       "tfx==0.15.0",
-                      "pyarrow==0.14",
+                      "pyarrow==0.14.1",
+                      "apache-beam==2.16.0",
                       "mlflow",
                       "pymongo"],
     license=about['__license__'],
