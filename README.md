@@ -1,28 +1,40 @@
 # GPT-2 in TFX 
-Main work done by [nsheppert/gpt-2](https://github.com/nshepperd/gpt-2)
+This repository contains code for creating a end-end TFX pipeline for GPT-2. The pipeline contains the needed data preprocessing, exporting data from MongoDB, training with pretrained model and deployment to a MLFlow model registry. In the registry there is a possibility to label all produced models. Thus one can image that a service only gets the production model. All pipelines can be orchestrated with either Airflow, Beam or Kubeflow. Tensorboard is supported and can be used for keeping a track during training. 
 
-In this repository, we take the existing code and transform it into a TFX pipeline. The TFX pipeline can then be orchestrated with either Airflow or Kubeflow (not recommended though if Kubeflow needs to be set up). Have a look at `examples` for getting to know how to use this module. Tensorboard is supported can be used for keeping a track during training. Additionally, the complete pipeline creates a model and pushes it into a MLFlow registry. This registry is then the central place where all of your model are stored and where your services will be grabbing the GPT-2 model.
+**Why TFX?**
 
-## Why TFX? 
 - TFX is a open source framework for creating production grade end-end machine learning pipelines.
 - It handles a lot of useful things like caching and versioning
+- Support for Airflow and Kubeflow
+
+**Why Tensorboard?**
+
+- Tensorflow native visualization tool
+- Powerful tool
+
+**Why MLFlow**
+
+- Built-in Model Registy
+- Dashboard for comparing models, their performance and produces artifacts
 
 ## Getting Started
 
 ### Install package
-```
+```bash
 git clone https://github.com/steven-mi/tfx-gpt2.git
 cd tfx-gpt2
 pip indstall tfx-gpt2
 ```
 
 ## Run pipeline with Apache Beam
+
 ```bash
 cd examples
 python beam-example.py
 ```
 
 ## Run with Apache Airflow
+
 ```bash
 ... setup airflow
 # copy files to dag folder
@@ -34,7 +46,20 @@ airflow webserver
 # go to localhost:8080 an start the DAG
 ```
 
+## Start Tensorboard
+
+```
+tensorboard --logdir /PATH/TO/OUTPUT/FOLDER
+```
+
+## Start MLFlow
+
+```bash
+mlflow server --backend-store-uri sqlite:///mlflow.d --default-artifact-root PATH/TO/MLRUNS/FOLDER
+```
+
 ## List of available models
+
 Look at the [Paper](https://openai.com/blog/better-language-models/) for performance details. Choose the model depending on your resources. Insert the model name as string value for `model_name` in your pipeline.
 
 | Model Name        | Layers | Comments                                                     |
@@ -45,7 +70,7 @@ Look at the [Paper](https://openai.com/blog/better-language-models/) for perform
 | `1558M`           | 48     | Largest model trained. Known for super human performance (see: https://openai.com/blog/better-language-models/) |
 
 
-## Recommendations
+## Training recommendations
 - GPT-2 models' robustness and worst case behaviors are not well-understood. As with any machine-learned model, carefully evaluate GPT-2 for your use case, especially if used without fine-tuning or in safety-critical applications where reliability is important.
 - The dataset our GPT-2 models were trained on contains many texts with biases and factual inaccuracies, and thus GPT-2 models are likely to be biased and inaccurate as well.
 - To avoid having samples mistaken as human-written, we recommend clearly labeling samples as synthetic before wide dissemination. Our models are often incoherent or inaccurate in subtle ways, which takes more than a quick read for a human to notice.
