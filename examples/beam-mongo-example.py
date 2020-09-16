@@ -10,7 +10,7 @@ mongo_colnames = ["zeit",
 
 model_name = "117M"
 
-mlflow_tracking_url = "127.0.0.1:5000"
+mlflow_tracking_url = "./mlruns"
 
 train_config = {'num_iterations': 10,  # number of iterations
                 'batch_size': 1,  # Batch size

@@ -11,6 +11,8 @@ model_name = "117M"
 
 text_path = os.path.join(os.environ['AIRFLOW_HOME'], "data", "test.txt")
 
+mlflow_tracking_url = "./mlruns"
+
 train_config = {'num_iterations': 100000,  # number of iterations
                 'batch_size': 1,  # Batch size
                 'learning_rate': 0.00002,  # Learning rate for Adam
@@ -35,7 +37,9 @@ pipeline = create_pipeline(pipeline_name=os.path.basename(__file__),
                            pipeline_root=output_dir,
                            model_name=model_name,
                            text_path=text_path,
-                           train_config=train_config)
+                           mlflow_tracking_url=mlflow_tracking_url,
+                           train_config=train_config,
+                           enable_cache=True)
 
 airflow_config = {'schedule_interval': "@once",  # every 30 minutes
                   'start_date': datetime(1998, 2, 23, 8),  # year, month, day, hour

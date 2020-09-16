@@ -1,6 +1,6 @@
 import os
 import json
-
+import pickle
 import numpy as np
 import tensorflow as tf
 
@@ -52,7 +52,8 @@ def export_for_serving(model_path, checkpoint_dir, export_dir, train_config, see
         builder = tf.saved_model.builder.SavedModelBuilder(export_dir)
         signature = predict_signature_def(inputs={'context': context},
                                           outputs={'sample': output})
-
+        with open(os.path.join(export_dir, 'signature.pickle'), 'wb') as handle:
+            pickle.dump(signature, handle, protocol=pickle.HIGHEST_PROTOCOL)
         builder.add_meta_graph_and_variables(sess,
                                              [tf.saved_model.SERVING],
                                              signature_def_map={"predict": signature},

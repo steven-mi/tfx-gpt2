@@ -196,7 +196,7 @@ def train_gpt2(dataset_path, model_path,
                 avg=avg_loss[0] / avg_loss[1]))
 
             counter += 1
-    return train_config, {"loss": loss,
+    return train_config, {"loss": v_loss,
                           "avg loss": avg_loss[0] / avg_loss[1]}
 
 
@@ -230,7 +230,6 @@ class Executor(base_executor.BaseExecutor):
 
         with open(os.path.join(hyperparameter_dir, 'hyperparameter.pickle'), 'wb') as handle:
             pickle.dump(train_config, handle, protocol=pickle.HIGHEST_PROTOCOL)
-        print(metrics)
         with open(os.path.join(metric_dir, 'metric.pickle'), 'wb') as handle:
             pickle.dump(metrics, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
