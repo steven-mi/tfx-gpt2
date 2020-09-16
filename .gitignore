@@ -264,7 +264,7 @@ cython_debug/
 # .idea/modules
 # *.iml
 # *.ipr
-
+.idea
 # CMake
 cmake-build-*/
 
