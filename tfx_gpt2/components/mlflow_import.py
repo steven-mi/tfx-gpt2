@@ -1,4 +1,5 @@
 import os
+import glob
 import pickle
 import logging
 
@@ -13,7 +14,6 @@ from tfx.components.base import executor_spec
 from tfx.components.base import base_executor
 
 from tfx.types import standard_artifacts
-from tfx.utils.dsl_utils import external_input
 
 from tfx.types.artifact_utils import get_single_uri
 
@@ -26,19 +26,35 @@ class Executor(base_executor.BaseExecutor):
     def Do(self, input_dict: Dict[Text, List[types.Artifact]],
            output_dict: Dict[Text, List[types.Artifact]],
            exec_properties: Dict[Text, Any]) -> None:
-        encoding = exec_properties["encoding"]
-        combine = exec_properties["combine"]
-        text_path = exec_properties["text_path"]
-        model_path = get_single_uri(input_dict["model_path"])
-        dataset_path = os.path.join(get_single_uri(output_dict["dataset_path"]), "dataset.npz")
+        model_name = exec_properties["model_name"]
+        mlflow_tracking_url = exec_properties["mlflow_tracking_url"]
+
+        model_dir = get_single_uri(input_dict["model_dir"])
+        artifact_dir = get_single_uri(input_dict["artifact_dir"])
+        hyperparameter_dir = get_single_uri(input_dict["hyperparameter_dir"])
+        metric_dir = get_single_uri(input_dict["metric_dir"])
+
+        mlflow.set_tracking_uri(mlflow_tracking_url)
+        mlflow.set_experiment(model_name)
+        with mlflow.start_run():
+            with open(glob.glob(os.path.join(hyperparameter_dir, "*.pickle"))[0], 'rb') as fp:
+                hyperparameter = pickle.load(fp)
+                for k, v in hyperparameter.items():
+                    mlflow.log_param(k, v)
+            with open(glob.glob(os.path.join(metric_dir, "*.pickle"))[0], 'rb') as fp:
+                metric = pickle.load(fp)
+                for k, v in metric.items():
+                    mlflow.log_metric(k, v)
+            for artifact in glob.glob(os.path.join(artifact_dir, "*")):
+                mlflow.log_artifact(artifact)
+            for model in glob.glob(os.path.join(model_dir, "*")):
+                mlflow.log_artifact(model)
 
 
 class MLFlowImportSpec(types.ComponentSpec):
     PARAMETERS = {
         'model_name': ExecutionParameter(type=Text),
         'mlflow_tracking_url': ExecutionParameter(type=int),
-        'mlflow_host': ExecutionParameter(type=int),
-        'mlflow_port': ExecutionParameter(type=int),
     }
 
     INPUTS = {
@@ -59,16 +75,12 @@ class MLFlowImport(base_component.BaseComponent):
     def __init__(self,
                  model_name: Text,
                  mlflow_tracking_url: Text,
-                 mlflow_host: Text,
-                 mlflow_port: Text,
                  model_dir: types.Channel,
                  artifact_dir: types.Channel,
                  hyperparameter_dir: types.Channel,
                  metric_dir: types.Channel):
         spec = MLFlowImportSpec(model_name=model_name,
                                 mlflow_tracking_url=mlflow_tracking_url,
-                                mlflow_host=mlflow_host,
-                                mlflow_port=mlflow_port,
                                 model_dir=model_dir,
                                 artifact_dir=artifact_dir,
                                 hyperparameter_dir=hyperparameter_dir,

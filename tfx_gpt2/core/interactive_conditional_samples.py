@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 
-import fire
 import json
 import os
 import numpy as np
@@ -85,5 +84,3 @@ def interact_model(
                     print(text)
             print("=" * 80)
 
-if __name__ == '__main__':
-    fire.Fire(interact_model)
