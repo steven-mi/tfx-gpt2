@@ -5,11 +5,11 @@ from tfx_gpt2.templates.local_pipeline import create_pipeline
 
 model_name = "117M"
 
-text_path = "./examples/data/test.txt"
+text_path = "./data/test.txt"
 
 mlflow_tracking_url = "./mlruns"
 
-train_config = {'num_iterations': 2,  # number of iterations
+train_config = {'num_iterations': 10,  # number of iterations
                 'batch_size': 1,  # Batch size
                 'learning_rate': 0.00002,  # Learning rate for Adam
                 'accumulate_gradients': 1,  # Accumulate gradients across N minibatches.
