@@ -47,9 +47,8 @@ class Executor(base_executor.BaseExecutor):
                     mlflow.log_metric(k, v)
             for artifact in glob.glob(os.path.join(artifact_dir, "*")):
                 mlflow.log_artifact(artifact)
-            with open(glob.glob(os.path.join(model_dir, "*.pickle"))[0], 'rb') as fp:
-                mlflow.tensorflow.log_model(tf_saved_model_dir=model_dir, tf_meta_graph_tags=["serve"],
-                                            tf_signature_def_key="predict", artifact_path="GPT2")
+            mlflow.tensorflow.log_model(tf_saved_model_dir=model_dir, tf_meta_graph_tags=["serve"],
+                                        tf_signature_def_key="predict", artifact_path="GPT2")
 
 
 class MLFlowImportSpec(types.ComponentSpec):

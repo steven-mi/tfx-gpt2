@@ -71,17 +71,16 @@ class Executor(base_executor.BaseExecutor):
 
         export_dir = get_single_uri(output_dict["export_dir"])
 
+        export_for_serving(encoding_dir=encoding_dir,
+                           checkpoint_dir=checkpoint_dir,
+                           export_dir=export_dir,
+                           train_config=train_config)
         # copy encodings to export dir because they are needed for inference!
         src_files = os.listdir(encoding_dir)
         for file_name in src_files:
             full_file_name = os.path.join(encoding_dir, file_name)
             if 'encoder.json' in full_file_name or 'hparams.json' in full_file_name or 'vocab.bpe' in full_file_name:
                 shutil.copy(full_file_name, export_dir)
-
-        export_for_serving(encoding_dir=encoding_dir,
-                           checkpoint_dir=checkpoint_dir,
-                           export_dir=export_dir,
-                           train_config=train_config)
 
 
 class ExportToTFServingSpec(types.ComponentSpec):
