@@ -2,18 +2,16 @@ import os
 
 from datetime import datetime
 
-from tfx_gpt2 import create_pipeline
+from tfx.orchestration.airflow.airflow_dag_runner import AirflowDagRunner
+from tfx.orchestration.airflow.airflow_dag_runner import AirflowPipelineConfig
 
-from kfp import onprem
-from tfx.orchestration.kubeflow import kubeflow_dag_runner
-
-persistent_volume_claim = 'tfx-pvc'
-persistent_volume = 'tfx-pv'
-persistent_volume_mount = '/mnt'
+from tfx_gpt2.templates.local_pipeline import create_pipeline
 
 model_name = "117M"
 
-text_path = os.path.join(persistent_volume_mount, "data")
+text_path = os.path.join(os.environ['AIRFLOW_HOME'], "data", "test.txt")
+
+mlflow_tracking_url = "./mlruns"
 
 train_config = {'num_iterations': 100000,  # number of iterations
                 'batch_size': 1,  # Batch size
@@ -33,23 +31,17 @@ train_config = {'num_iterations': 100000,  # number of iterations
                 'save_every': 1000,  # Write a checkpoint every N steps
                 }
 
+output_dir = os.path.join(os.environ['AIRFLOW_HOME'], "output")
+
 pipeline = create_pipeline(pipeline_name=os.path.basename(__file__),
-                           pipeline_root=persistent_volume_mount,
+                           pipeline_root=output_dir,
                            model_name=model_name,
                            text_path=text_path,
-                           train_config=train_config)
+                           mlflow_tracking_url=mlflow_tracking_url,
+                           train_config=train_config,
+                           enable_cache=True)
 
-runner_config = kubeflow_dag_runner.KubeflowDagRunnerConfig(
-    # Metadata config. The defaults works work with the installation of
-    # KF Pipelines using Kubeflow. If installing KF Pipelines using the
-    # lightweight deployment option, you may need to override the defaults.
-    kubeflow_metadata_config=kubeflow_dag_runner.get_default_kubeflow_metadata_config(),
-    pipeline_operator_funcs=(
-        # If running on K8s Engine (GKE) on Google Cloud Platform (GCP),
-        # kubeflow_dag_runner.get_default_pipeline_operator_funcs() provides
-        # default configurations specifically for GKE on GCP, such as secrets.
-        [
-            onprem.mount_pvc(persistent_volume_claim, persistent_volume,
-                             persistent_volume_mount)
-        ]))
-kubeflow_dag_runner.KubeflowDagRunner(config=runner_config).run(pipeline)
+airflow_config = {'schedule_interval': "@once",  # every 30 minutes
+                  'start_date': datetime(1998, 2, 23, 8),  # year, month, day, hour
+                  }
+DAG = AirflowDagRunner(AirflowPipelineConfig(airflow_config)).run(pipeline)

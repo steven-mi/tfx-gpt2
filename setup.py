@@ -2,7 +2,7 @@
 
 import os
 import setuptools
-from setuptools import setup
+from setuptools import setup, find_packages
 
 # get key package details from tfx_gpt2/__version__.py
 about = {}  # type: ignore
@@ -28,13 +28,17 @@ setup(
     packages=setuptools.find_packages(),
     include_package_data=True,
     python_requires=">=3.6.*",
-    install_requires=["fire>=0.1.3",
-                      "regex",
+    install_requires=["regex",
                       "requests",
                       "tqdm",
                       "toposort==1.5",
-                      "tensorflow==1.15",
-                      "tfx==0.15.0"],
+                      "tensorflow==1.15.0",
+                      "tensorflow-serving-api==1.15.0"
+                      "tfx==0.15.0",
+                      "pyarrow==0.14.1",
+                      "apache-beam==2.16.0",
+                      "mlflow",
+                      "pymongo"],
     license=about['__license__'],
     zip_safe=False,
     classifiers=[

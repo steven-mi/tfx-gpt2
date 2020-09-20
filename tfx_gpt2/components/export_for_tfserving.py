@@ -1,14 +1,12 @@
 import os
-import time
-import fire
 import json
-
+import pickle
 import numpy as np
 import tensorflow as tf
 
 from tensorflow.python.saved_model.signature_def_utils_impl import predict_signature_def
 
-from tfx_gpt2.gpt_2 import sample, model
+from tfx_gpt2.core import sample, model
 
 from typing import Any, Dict, List, Text
 
@@ -31,14 +29,10 @@ def export_for_serving(model_path, checkpoint_dir, export_dir, train_config, see
     hparams = model.default_hparams()
     with open(os.path.join(model_path, 'hparams.json')) as f:
         hparams.override_from_dict(json.load(f))
-
-    if length is None:
-        length = hparams.n_ctx
-    elif length > hparams.n_ctx:
-        raise ValueError("Can't get samples longer than window size: %s" % hparams.n_ctx)
+    length = hparams.n_ctx
 
     with tf.Session(graph=tf.Graph()) as sess:
-        context = tf.placeholder(tf.int32, [batch_size, None])
+        context = tf.placeholder(tf.int32, [train_config["batch_size"], None])
         np.random.seed(seed)
         tf.set_random_seed(seed)
 
@@ -58,7 +52,8 @@ def export_for_serving(model_path, checkpoint_dir, export_dir, train_config, see
         builder = tf.saved_model.builder.SavedModelBuilder(export_dir)
         signature = predict_signature_def(inputs={'context': context},
                                           outputs={'sample': output})
-
+        with open(os.path.join(export_dir, 'signature.pickle'), 'wb') as handle:
+            pickle.dump(signature, handle, protocol=pickle.HIGHEST_PROTOCOL)
         builder.add_meta_graph_and_variables(sess,
                                              [tf.saved_model.SERVING],
                                              signature_def_map={"predict": signature},

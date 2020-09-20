@@ -1,6 +1,6 @@
 import tensorflow as tf
 
-from tfx_gpt2.gpt_2 import model
+from tfx_gpt2.core import model
 
 def top_k_logits(logits, k):
     if k == 0:

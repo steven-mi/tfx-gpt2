@@ -1,16 +1,18 @@
 import os
 
-from datetime import datetime
-
-from tfx_gpt2 import create_pipeline
-
 from tfx.orchestration.beam.beam_dag_runner import BeamDagRunner
+from tfx_gpt2.templates.mongo_pipeline import create_pipeline
+
+mongo_ip = "localhost"
+mongo_colnames = ["zeit",
+                  "spiegel",
+                  "bild"]
 
 model_name = "117M"
 
-text_path = "./data/test.txt"
+mlflow_tracking_url = "./mlruns"
 
-train_config = {'num_iterations': 100000,  # number of iterations
+train_config = {'num_iterations': 10,  # number of iterations
                 'batch_size': 1,  # Batch size
                 'learning_rate': 0.00002,  # Learning rate for Adam
                 'accumulate_gradients': 1,  # Accumulate gradients across N minibatches.
@@ -33,8 +35,10 @@ output_dir = "./output"
 pipeline = create_pipeline(pipeline_name=os.path.basename(__file__),
                            pipeline_root=output_dir,
                            model_name=model_name,
-                           text_path=text_path,
                            train_config=train_config,
-                           enable_cache=True)
+                           mongo_colnames=mongo_colnames,
+                           mongo_ip=mongo_ip,
+                           enable_cache=True,
+                           mlflow_tracking_url=mlflow_tracking_url)
 
-DAG = BeamDagRunner().run(pipeline)
+BeamDagRunner().run(pipeline)

@@ -1,17 +1,15 @@
 import os
 
-from datetime import datetime
-
-from tfx_gpt2 import create_pipeline
-
-from tfx.orchestration.airflow.airflow_dag_runner import AirflowDagRunner
-from tfx.orchestration.airflow.airflow_dag_runner import AirflowPipelineConfig
+from tfx.orchestration.beam.beam_dag_runner import BeamDagRunner
+from tfx_gpt2.templates.local_pipeline import create_pipeline
 
 model_name = "117M"
 
-text_path = os.path.join(os.environ['AIRFLOW_HOME'], "data", "test.txt")
+text_path = "./data/test.txt"
 
-train_config = {'num_iterations': 100000,  # number of iterations
+mlflow_tracking_url = "./mlruns"
+
+train_config = {'num_iterations': 10,  # number of iterations
                 'batch_size': 1,  # Batch size
                 'learning_rate': 0.00002,  # Learning rate for Adam
                 'accumulate_gradients': 1,  # Accumulate gradients across N minibatches.
@@ -23,21 +21,20 @@ train_config = {'num_iterations': 100000,  # number of iterations
                 'top_k': 40,  # K for top-k sampling.
                 'top_p': 0.0,  # P for top-p sampling. Overrides top_k if set > 0.
 
-                'sample_every': 100,  # Generate samples every N steps
+                'sample_every': 1,  # Generate samples every N steps
                 'sample_length': 1023,  # Sample this many tokens
                 'sample_num': 1,  # Generate this many samples
-                'save_every': 1000,  # Write a checkpoint every N steps
+                'save_every': 1,  # Write a checkpoint every N steps
                 }
 
-output_dir = os.path.join(os.environ['AIRFLOW_HOME'], "output")
+output_dir = "./output"
 
 pipeline = create_pipeline(pipeline_name=os.path.basename(__file__),
                            pipeline_root=output_dir,
                            model_name=model_name,
                            text_path=text_path,
-                           train_config=train_config)
+                           mlflow_tracking_url=mlflow_tracking_url,
+                           train_config=train_config,
+                           enable_cache=True)
 
-airflow_config = {'schedule_interval': "@once",  # every 30 minutes
-                  'start_date': datetime(1998, 2, 23, 8),  # year, month, day, hour
-                  }
-DAG = AirflowDagRunner(AirflowPipelineConfig(airflow_config)).run(pipeline)
+BeamDagRunner().run(pipeline)

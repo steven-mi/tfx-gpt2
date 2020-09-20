@@ -1,9 +1,7 @@
 import glob
 import numpy as np
 import os
-#TODO
 
-import tensorflow as tf
 import tqdm
 
 
