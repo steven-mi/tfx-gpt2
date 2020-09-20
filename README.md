@@ -20,6 +20,7 @@ This repository contains code for creating a end-end TFX pipeline for GPT-2. The
 
 - Built-in Model Registy
 - Dashboard for comparing models, their performance and produces artifacts
+- [mlflow-heroku](https://github.com/NewsPipe/mlflow-heroku): Repository for setting up MLFlow on heroku
 
 ## Getting Started
 
