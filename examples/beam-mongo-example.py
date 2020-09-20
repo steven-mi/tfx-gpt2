@@ -1,7 +1,7 @@
 import os
 
 from tfx.orchestration.beam.beam_dag_runner import BeamDagRunner
-from tfx_gpt2.templates.mongo_pipeline import create_pipeline
+from tfx_gpt2.templates.mongo_custom_language_pipeline import create_pipeline
 
 mongo_ip = "localhost"
 mongo_colnames = ["zeit",
@@ -10,9 +10,12 @@ mongo_colnames = ["zeit",
 
 model_name = "117M"
 
+text_dir = "./data"
+text_token_size = 40000  # https://github.com/rkfg/gpt-2/issues/4
+
 mlflow_tracking_url = "./mlruns"
 
-train_config = {'num_iterations': 10,  # number of iterations
+train_config = {'num_iterations': 2,  # number of iterations
                 'batch_size': 1,  # Batch size
                 'learning_rate': 0.00002,  # Learning rate for Adam
                 'accumulate_gradients': 1,  # Accumulate gradients across N minibatches.
@@ -24,10 +27,10 @@ train_config = {'num_iterations': 10,  # number of iterations
                 'top_k': 40,  # K for top-k sampling.
                 'top_p': 0.0,  # P for top-p sampling. Overrides top_k if set > 0.
 
-                'sample_every': 100,  # Generate samples every N steps
+                'sample_every': 1,  # Generate samples every N steps
                 'sample_length': 1023,  # Sample this many tokens
                 'sample_num': 1,  # Generate this many samples
-                'save_every': 1000,  # Write a checkpoint every N steps
+                'save_every': 1,  # Write a checkpoint every N steps
                 }
 
 output_dir = "./output"
@@ -35,6 +38,7 @@ output_dir = "./output"
 pipeline = create_pipeline(pipeline_name=os.path.basename(__file__),
                            pipeline_root=output_dir,
                            model_name=model_name,
+                           text_token_size=text_token_size,
                            train_config=train_config,
                            mongo_colnames=mongo_colnames,
                            mongo_ip=mongo_ip,

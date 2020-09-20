@@ -26,7 +26,7 @@ class Executor(base_executor.BaseExecutor):
            output_dict: Dict[Text, List[types.Artifact]],
            exec_properties: Dict[Text, Any]) -> None:
 
-        model_path = get_single_uri(output_dict["model_path"])
+        model_dir = get_single_uri(output_dict["model_dir"])
         model_name = exec_properties["model_name"]
 
         subdir = os.path.join('models', model_name)
@@ -37,7 +37,7 @@ class Executor(base_executor.BaseExecutor):
             # get file from storage server
             r = requests.get("https://storage.googleapis.com/gpt-2/" + subdir + "/" + filename, stream=True)
             # save to output path
-            with open(os.path.join(model_path, filename), 'wb') as f:
+            with open(os.path.join(model_dir, filename), 'wb') as f:
                 file_size = int(r.headers["content-length"])
                 chunk_size = 1000
                 with tqdm(ncols=100, desc="Fetching " + filename, total=file_size, unit_scale=True) as pbar:
@@ -56,7 +56,7 @@ class DownloadPretrainedModelSpec(types.ComponentSpec):
     }
 
     OUTPUTS = {
-        'model_path': ChannelParameter(type=standard_artifacts.ExternalArtifact),
+        'model_dir': ChannelParameter(type=standard_artifacts.ExternalArtifact),
     }
 
 
@@ -66,8 +66,8 @@ class DownloadPretrainedModel(base_component.BaseComponent):
 
     def __init__(self,
                  model_name: Text = "117M"):
-        model_path = external_input("DownloadPretrainedModel")
+        model_dir = external_input("DownloadPretrainedModel")
         spec = DownloadPretrainedModelSpec(model_name=model_name,
-                                           model_path=model_path)
+                                           model_dir=model_dir)
 
         super(DownloadPretrainedModel, self).__init__(spec=spec)

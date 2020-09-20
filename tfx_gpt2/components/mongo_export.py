@@ -33,13 +33,21 @@ class Executor(base_executor.BaseExecutor):
         dbname = exec_properties["dbname"]
         db = client[dbname]
         colnames = exec_properties["colnames"]
-        output_dir = get_single_uri(output_dict["output_dir"])
+        end_token = exec_properties["end_token"]
+        merged_text_dir = get_single_uri(output_dict["merged_text_dir"])
 
+        raw_text = ""
         for colname in colnames:
             logging.info("Get data from {}/{}".format(dbname, colname))
             documents = db[colname].find({}, {"text": 1, "_id": 0})
-            dataframe = pd.DataFrame(list(documents))
-            dataframe.to_csv(os.path.join(output_dir, "{}.csv".format(colname)))
+            for document in documents:
+                raw_text += document["text"] + end_token
+
+        # store raw text for encoding
+        merged_text_path = os.path.join(merged_text_dir, "merged_text")
+        with open(merged_text_path, "w") as text_file:
+            text_file.write(raw_text)
+        logging.info("Saving merged text to {}".format(merged_text_dir))
 
 
 class MongoExportSpec(types.ComponentSpec):
@@ -50,13 +58,14 @@ class MongoExportSpec(types.ComponentSpec):
         'password': ExecutionParameter(type=Text),
         'dbname': ExecutionParameter(type=Text),
         'colnames': ExecutionParameter(type=List),
+        'end_token': ExecutionParameter(type=Text),
     }
 
     INPUTS = {
     }
 
     OUTPUTS = {
-        'output_dir': ChannelParameter(type=standard_artifacts.ExternalArtifact),
+        'merged_text_dir': ChannelParameter(type=standard_artifacts.ExternalArtifact),
     }
 
 
@@ -66,17 +75,19 @@ class MongoExport(base_component.BaseComponent):
 
     def __init__(self,
                  colnames: Text,
+                 end_token: Text,
                  ip: Text = "mongo",
                  port: Text = "27017",
                  username: Text = os.environ['MONGO_ROOT_USER'],
                  password: Text = os.environ['MONGO_ROOT_PASSWORD'],
                  dbname: Text = os.environ['MONGO_DATABASE_NAME']):
-        output_dir = external_input("MongoExport")
+        merged_text_dir = external_input("MongoExport")
         spec = MongoExportSpec(ip=ip,
                                port=port,
                                username=username,
                                password=password,
                                dbname=dbname,
                                colname=colnames,
-                               output_dir=output_dir)
+                               end_token=end_token,
+                               merged_text_dir=merged_text_dir)
         super(MongoExport, self).__init__(spec=spec)

@@ -1,6 +1,6 @@
 import os
 import json
-import pickle
+import shutil
 import numpy as np
 import tensorflow as tf
 
@@ -25,9 +25,9 @@ from tfx.types.component_spec import ChannelParameter
 from tfx.types.component_spec import ExecutionParameter
 
 
-def export_for_serving(model_path, checkpoint_dir, export_dir, train_config, seed=0):
+def export_for_serving(encoding_dir, checkpoint_dir, export_dir, train_config, seed=0):
     hparams = model.default_hparams()
-    with open(os.path.join(model_path, 'hparams.json')) as f:
+    with open(os.path.join(encoding_dir, 'hparams.json')) as f:
         hparams.override_from_dict(json.load(f))
     length = hparams.n_ctx
 
@@ -52,8 +52,6 @@ def export_for_serving(model_path, checkpoint_dir, export_dir, train_config, see
         builder = tf.saved_model.builder.SavedModelBuilder(export_dir)
         signature = predict_signature_def(inputs={'context': context},
                                           outputs={'sample': output})
-        with open(os.path.join(export_dir, 'signature.pickle'), 'wb') as handle:
-            pickle.dump(signature, handle, protocol=pickle.HIGHEST_PROTOCOL)
         builder.add_meta_graph_and_variables(sess,
                                              [tf.saved_model.SERVING],
                                              signature_def_map={"predict": signature},
@@ -69,11 +67,18 @@ class Executor(base_executor.BaseExecutor):
         train_config = exec_properties["train_config"]
 
         checkpoint_dir = get_single_uri(input_dict["checkpoint_dir"])
-        model_path = get_single_uri(input_dict["model_path"])
+        encoding_dir = get_single_uri(input_dict["encoding_dir"])
 
         export_dir = get_single_uri(output_dict["export_dir"])
 
-        export_for_serving(model_path=model_path,
+        # copy encodings to export dir because they are needed for inference!
+        src_files = os.listdir(encoding_dir)
+        for file_name in src_files:
+            full_file_name = os.path.join(encoding_dir, file_name)
+            if 'encoder.json' in full_file_name or 'hparams.json' in full_file_name or 'vocab.bpe' in full_file_name:
+                shutil.copy(full_file_name, export_dir)
+
+        export_for_serving(encoding_dir=encoding_dir,
                            checkpoint_dir=checkpoint_dir,
                            export_dir=export_dir,
                            train_config=train_config)
@@ -87,7 +92,7 @@ class ExportToTFServingSpec(types.ComponentSpec):
 
     INPUTS = {
         'checkpoint_dir': ChannelParameter(type=standard_artifacts.ExternalArtifact),
-        'model_path': ChannelParameter(type=standard_artifacts.ExternalArtifact),
+        'encoding_dir': ChannelParameter(type=standard_artifacts.ExternalArtifact),
     }
 
     OUTPUTS = {
@@ -101,11 +106,11 @@ class ExportToTFServing(base_component.BaseComponent):
 
     def __init__(self,
                  checkpoint_dir: types.Channel,
-                 model_path: types.Channel,
+                 encoding_dir: types.Channel,
                  train_config: Dict):
         export_dir = external_input("ExportToTFServing")
 
-        spec = ExportToTFServingSpec(model_path=model_path,
+        spec = ExportToTFServingSpec(encoding_dir=encoding_dir,
                                      checkpoint_dir=checkpoint_dir,
                                      export_dir=export_dir,
                                      train_config=train_config)
