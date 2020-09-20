@@ -8,7 +8,7 @@ model_name = "117M"
 text_dir = "./data"
 text_token_size = 5000  # https://github.com/rkfg/gpt-2/issues/4
 
-mlflow_tracking_url = "./mlruns"
+mlflow_tracking_url = "http://127.0.0.1:5000"
 
 train_config = {'num_iterations': 2,  # number of iterations
                 'batch_size': 1,  # Batch size
