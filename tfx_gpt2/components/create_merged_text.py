@@ -30,30 +30,29 @@ class Executor(base_executor.BaseExecutor):
 
         text_dir = exec_properties["text_dir"]
         merged_text_dir = get_single_uri(output_dict["merged_text_dir"])
+        merged_text_path = os.path.join(merged_text_dir, "merged_text")
 
-        file_paths = []
+        raw_text = ''
         for (dirpath, _, fnames) in os.walk(text_dir):
             for fname in fnames:
                 file_path = os.path.join(dirpath, fname)
-                file_paths.append(file_path)
-                logging.info("found file:{}".format(file_path))
 
-        raw_text = ''
-        for file_path in file_paths:
-            if file_path.endswith('.csv'):
-                df = pd.read_csv(file_path)
-                for index, row in df.iterrows():
-                    raw_text += row["text"] + end_token
-            else:
-                # Plain text
-                with open(file_path, 'r', encoding=encoding) as fp:
-                    raw_text += fp.read() + end_token
+                if file_path.endswith('.csv'):
+                    df = pd.read_csv(file_path)
+                    for index, row in df.iterrows():
+                        raw_text += row["text"] + end_token
+                elif "wiki" in fname:
+                    for line in open(file_path, 'r'):
+                        raw_text += json.loads(line)["text"] + end_token
+                else:
+                    # Plain text
+                    with open(file_path, 'r', encoding=encoding) as fp:
+                        raw_text += fp.read() + end_token
 
-        # store raw text for encoding
-        merged_text_path = os.path.join(merged_text_dir, "merged_text")
-        with open(merged_text_path, "w") as text_file:
-            text_file.write(raw_text)
-        logging.info("Saving merged text to {}".format(merged_text_dir))
+                with open(merged_text_path, "a") as text_file:
+                    text_file.write(raw_text)
+                raw_text = ''
+        logging.info("Saved merged text to {}".format(merged_text_dir))
         return 0
 
 
