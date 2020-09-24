@@ -32,7 +32,8 @@ def create_pipeline(pipeline_name, pipeline_root, model_name, text_dir, train_co
 
     create_dataset = CreateEncodedDataset(merged_text_dir=create_merged_text.outputs["merged_text_dir"],
                                           encoding_dir=create_encoding.outputs["encoding_dir"],
-                                          encoding=encoding)
+                                          encoding=encoding,
+                                          end_token=end_token)
 
     train_gpt2 = TrainGPT2(dataset_dir=create_dataset.outputs["dataset_dir"],
                            checkpoint_dir=pretrained_model.outputs["model_dir"],
