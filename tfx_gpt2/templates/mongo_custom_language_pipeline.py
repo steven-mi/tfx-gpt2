@@ -30,7 +30,8 @@ def create_pipeline(pipeline_name, pipeline_root, model_name, train_config, mlfl
     create_encoding = CreateEncoding(encoding=encoding,
                                      model_dir=pretrained_model.outputs["model_dir"],
                                      merged_text_dir=mongo_export.outputs["merged_text_dir"],
-                                     text_token_size=text_token_size)
+                                     text_token_size=text_token_size,
+                                     end_token=end_token)
 
     create_dataset = CreateEncodedDataset(merged_text_dir=mongo_export.outputs["merged_text_dir"],
                                           encoding_dir=create_encoding.outputs["encoding_dir"],
