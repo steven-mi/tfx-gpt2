@@ -5,14 +5,13 @@ import pandas as pd
 import tqdm
 
 
-def load_dataset(enc, path, encoding=None):
+def load_dataset(enc, path, encoding=None, end_token=None):
     paths = []
     for (dirpath, _, fnames) in os.walk(path):
         for fname in fnames:
             paths.append(os.path.join(dirpath, fname))
 
     token_chunks = []
-    raw_text = ''
     for path in tqdm.tqdm(paths):
         if path.endswith('.npz'):
             # Pre-encoded
@@ -20,12 +19,15 @@ def load_dataset(enc, path, encoding=None):
                 for item in npz.files:
                     token_chunks.append(npz[item])
         else:
-            # Plain text
-            with open(path, 'r', encoding=encoding) as fp:
-                raw_text += fp.read()
-    if raw_text:
-        tokens = np.stack(enc.encode(raw_text))
-        token_chunks.append(tokens)
+            # big merged text
+            with open(path) as file:
+                raw_text = ''
+                for line in file:
+                    raw_text += line
+                    if end_token in line:
+                        tokens = np.stack(enc.encode(raw_text))
+                        token_chunks.append(tokens)
+                        raw_text=""
     return token_chunks
 
 
