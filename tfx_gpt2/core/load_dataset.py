@@ -1,50 +1,33 @@
-import glob
-import numpy as np
 import os
 
+import numpy as np
+import pandas as pd
 import tqdm
 
 
-def load_dataset(enc, path, combine, encoding=None):
+def load_dataset(enc, path, encoding=None, end_token=None):
     paths = []
-    if os.path.isfile(path):
-        # Simple file
-        paths.append(path)
-    elif os.path.isdir(path):
-        # Directory
-        for (dirpath, _, fnames) in os.walk(path):
-            for fname in fnames:
-                paths.append(os.path.join(dirpath, fname))
-    else:
-        # Assume glob
-        paths = glob.glob(path)
+    for (dirpath, _, fnames) in os.walk(path):
+        for fname in fnames:
+            paths.append(os.path.join(dirpath, fname))
 
     token_chunks = []
-    raw_text = ''
     for path in tqdm.tqdm(paths):
         if path.endswith('.npz'):
             # Pre-encoded
             with np.load(path) as npz:
                 for item in npz.files:
                     token_chunks.append(npz[item])
-        elif path.endswith('.csv'):
-            end_token = "<|endoftext|>"
-            df = pd.read_csv(path)
-            for index, row in df.iterrows():
-                raw_text += row["text"] + end_token + "\n"
         else:
-            # Plain text
-            with open(path, 'r', encoding=encoding) as fp:
-                raw_text += fp.read()
-            if len(raw_text) >= combine:
-                tokens = np.stack(enc.encode(raw_text))
-                token_chunks.append(tokens)
+            # big merged text
+            with open(path) as file:
                 raw_text = ''
-            else:
-                raw_text += '<|endoftext|>'
-    if raw_text:
-        tokens = np.stack(enc.encode(raw_text))
-        token_chunks.append(tokens)
+                for line in file:
+                    raw_text += line
+                    if end_token in line:
+                        tokens = np.stack(enc.encode(raw_text))
+                        token_chunks.append(tokens)
+                        raw_text=""
     return token_chunks
 
 

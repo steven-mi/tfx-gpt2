@@ -1,6 +1,10 @@
 # GPT-2 Pipeline
 This repository contains code for creating a end-end TFX pipeline for GPT-2. The pipeline contains the needed data preprocessing, exporting data from MongoDB, training with pretrained model and deployment to a MLFlow model registry. In the registry there is a possibility to label all produced models. Thus one can image that a service only gets the production model. All pipelines can be orchestrated with either Airflow, Beam or Kubeflow. Tensorboard is supported and can be used for keeping a track during training. 
 
+**Which pipelines are available?**
+- Finetune from OpenAI models alias Transfer Learning
+- Train from scatch. It is not recommended to do Transfer Learning, when you want to train on datasets with different languages.
+
 **Why TFX?**
 
 - TFX is a open source framework for creating production grade end-end machine learning pipelines.
@@ -16,6 +20,7 @@ This repository contains code for creating a end-end TFX pipeline for GPT-2. The
 
 - Built-in Model Registy
 - Dashboard for comparing models, their performance and produces artifacts
+- [mlflow-heroku](https://github.com/NewsPipe/mlflow-heroku): Repository for setting up MLFlow on heroku
 
 ## Getting Started
 

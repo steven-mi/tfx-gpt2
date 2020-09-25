@@ -37,12 +37,12 @@ def randomize(context, hparams, p):
         return context
 
 
-def train_gpt2(dataset_path, model_path,
-               model_name, train_config, combine, encoding,
-               checkpoint_dir, sample_dir, tensorboard_dir):
-    enc = encoder.get_encoder(model_path)
+def train_gpt2(dataset_dir, checkpoint_dir, encoding_dir,
+               model_name, train_config, encoding,
+               trained_checkpoint_dir, sample_dir, tensorboard_dir):
+    enc = encoder.get_encoder(encoding_dir)
     hparams = model.default_hparams()
-    with open(os.path.join(model_path, 'hparams.json')) as f:
+    with open(os.path.join(encoding_dir, 'hparams.json')) as f:
         hparams.override_from_dict(json.load(f))
 
     if train_config["sample_length"] > hparams.n_ctx:
@@ -114,22 +114,22 @@ def train_gpt2(dataset_path, model_path,
             keep_checkpoint_every_n_hours=2)
         sess.run(tf.global_variables_initializer())
 
-        ckpt = tf.train.latest_checkpoint(
-            os.path.join(model_path))
-        if ckpt is None:
-            # Get fresh GPT weights if new run.
-            ckpt = tf.train.latest_checkpoint(os.path.join('models', model_name))
-        logging.info('Loading checkpoint', ckpt)
-        saver.restore(sess, ckpt)
+        try:
+            ckpt = tf.train.latest_checkpoint(
+                os.path.join(checkpoint_dir))
+            logging.info('Loading checkpoint', ckpt)
+            saver.restore(sess, ckpt)
+        except:
+            logging.info("Loading checkpoint failed - training from scratch")
 
         logging.info('Loading dataset...')
-        chunks = load_dataset(enc, dataset_path, combine, encoding=encoding)
+        chunks = load_dataset(enc, dataset_dir, encoding=encoding)
         data_sampler = Sampler(chunks)
         logging.info('dataset has', data_sampler.total_size, 'tokens')
 
-        logging.info('Training...')
+        logging.info('Training {}...'.format(model_name))
         counter = 1
-        counter_path = os.path.join(checkpoint_dir, 'counter')
+        counter_path = os.path.join(trained_checkpoint_dir, 'counter')
         if os.path.exists(counter_path):
             # Load the step number if we're resuming a run
             # Add 1 so we don't immediately try to save again
@@ -137,10 +137,10 @@ def train_gpt2(dataset_path, model_path,
                 counter = int(fp.read()) + 1
 
         def save():
-            logging.info('Saving {} model-{}'.format(checkpoint_dir, counter))
+            logging.info('Saving {} model-{}'.format(trained_checkpoint_dir, counter))
             saver.save(
                 sess,
-                os.path.join(checkpoint_dir, 'model'),
+                os.path.join(trained_checkpoint_dir, 'model'),
                 global_step=counter)
             with open(counter_path, 'w') as fp:
                 fp.write(str(counter) + '\n')
@@ -206,25 +206,25 @@ class Executor(base_executor.BaseExecutor):
            output_dict: Dict[Text, List[types.Artifact]],
            exec_properties: Dict[Text, Any]) -> None:
         model_name = exec_properties["model_name"]
-        combine = exec_properties["combine"]
         encoding = exec_properties["encoding"]
         train_config = exec_properties["train_config"]
 
-        dataset_path = get_single_uri(input_dict["dataset_path"])
-        model_path = get_single_uri(input_dict["model_path"])
+        dataset_dir = get_single_uri(input_dict["dataset_dir"])
+        checkpoint_dir = get_single_uri(input_dict["checkpoint_dir"])
+        encoding_dir = get_single_uri(input_dict["encoding_dir"])
 
-        checkpoint_dir = get_single_uri(output_dict["checkpoint_dir"])
+        trained_checkpoint_dir = get_single_uri(output_dict["trained_checkpoint_dir"])
         sample_dir = get_single_uri(output_dict["sample_dir"])
         tensorboard_dir = get_single_uri(output_dict["tensorboard_dir"])
         hyperparameter_dir = get_single_uri(output_dict["hyperparameter_dir"])
         metric_dir = get_single_uri(output_dict["metric_dir"])
-        train_config, metrics = train_gpt2(dataset_path=dataset_path,
-                                           model_path=model_path,
+        train_config, metrics = train_gpt2(dataset_dir=dataset_dir,
+                                           checkpoint_dir=checkpoint_dir,
+                                           encoding_dir=encoding_dir,
                                            model_name=model_name,
                                            train_config=train_config,
-                                           combine=combine,
                                            encoding=encoding,
-                                           checkpoint_dir=checkpoint_dir,
+                                           trained_checkpoint_dir=trained_checkpoint_dir,
                                            sample_dir=sample_dir,
                                            tensorboard_dir=tensorboard_dir)
 
@@ -237,19 +237,18 @@ class Executor(base_executor.BaseExecutor):
 class TrainGPT2Spec(types.ComponentSpec):
     PARAMETERS = {
         'model_name': ExecutionParameter(type=Text),
-        'combine': ExecutionParameter(type=int),
         'encoding': ExecutionParameter(type=Text),
         'train_config': ExecutionParameter(type=Dict),
-
     }
 
     INPUTS = {
-        'dataset_path': ChannelParameter(type=standard_artifacts.ExternalArtifact),
-        'model_path': ChannelParameter(type=standard_artifacts.ExternalArtifact),
+        'dataset_dir': ChannelParameter(type=standard_artifacts.ExternalArtifact),
+        'checkpoint_dir': ChannelParameter(type=standard_artifacts.ExternalArtifact),
+        'encoding_dir': ChannelParameter(type=standard_artifacts.ExternalArtifact),
     }
 
     OUTPUTS = {
-        'checkpoint_dir': ChannelParameter(type=standard_artifacts.ExternalArtifact),
+        'trained_checkpoint_dir': ChannelParameter(type=standard_artifacts.ExternalArtifact),
         'tensorboard_dir': ChannelParameter(type=standard_artifacts.ExternalArtifact),
         'sample_dir': ChannelParameter(type=standard_artifacts.ExternalArtifact),
         'hyperparameter_dir': ChannelParameter(type=standard_artifacts.ExternalArtifact),
@@ -262,25 +261,25 @@ class TrainGPT2(base_component.BaseComponent):
     EXECUTOR_SPEC = executor_spec.ExecutorClassSpec(Executor)
 
     def __init__(self,
-                 dataset_path: types.Channel,
-                 model_path: types.Channel,
+                 dataset_dir: types.Channel,
+                 checkpoint_dir: types.Channel,
+                 encoding_dir: types.Channel,
                  model_name: Text,
                  train_config: Dict,
-                 combine: int = 50000,
                  encoding: Text = 'utf-8'):
-        checkpoint_dir = external_input("TrainGPT2")
+        trained_checkpoint_dir = external_input("TrainGPT2")
         sample_dir = external_input("TrainGPT2")
         tensorboard_dir = external_input("TrainGPT2")
         hyperparameter_dir = external_input("TrainGPT2")
         metric_dir = external_input("TrainGPT2")
 
-        spec = TrainGPT2Spec(dataset_path=dataset_path,
-                             model_path=model_path,
+        spec = TrainGPT2Spec(dataset_dir=dataset_dir,
+                             checkpoint_dir=checkpoint_dir,
+                             encoding_dir=encoding_dir,
                              model_name=model_name,
                              train_config=train_config,
-                             combine=combine,
                              encoding=encoding,
-                             checkpoint_dir=checkpoint_dir,
+                             trained_checkpoint_dir=trained_checkpoint_dir,
                              sample_dir=sample_dir,
                              hyperparameter_dir=hyperparameter_dir,
                              metric_dir=metric_dir,

@@ -1,15 +1,16 @@
 import os
 
 from tfx.orchestration.beam.beam_dag_runner import BeamDagRunner
-from tfx_gpt2.templates.local_pipeline import create_pipeline
+from tfx_gpt2.templates.local_custom_language_pipeline import create_pipeline
 
 model_name = "117M"
 
-text_path = "./data/test.txt"
+text_dir = "./data"
+text_token_size = 5000  # https://github.com/rkfg/gpt-2/issues/4
 
-mlflow_tracking_url = "./mlruns"
+mlflow_tracking_url = "http://127.0.0.1:5000"
 
-train_config = {'num_iterations': 10,  # number of iterations
+train_config = {'num_iterations': 2,  # number of iterations
                 'batch_size': 1,  # Batch size
                 'learning_rate': 0.00002,  # Learning rate for Adam
                 'accumulate_gradients': 1,  # Accumulate gradients across N minibatches.
@@ -32,7 +33,8 @@ output_dir = "./output"
 pipeline = create_pipeline(pipeline_name=os.path.basename(__file__),
                            pipeline_root=output_dir,
                            model_name=model_name,
-                           text_path=text_path,
+                           text_dir=text_dir,
+                           text_token_size=text_token_size,
                            mlflow_tracking_url=mlflow_tracking_url,
                            train_config=train_config,
                            enable_cache=True)
