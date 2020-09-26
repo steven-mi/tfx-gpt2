@@ -4,12 +4,17 @@ from datetime import datetime
 from tfx.orchestration.airflow.airflow_dag_runner import AirflowDagRunner
 from tfx.orchestration.airflow.airflow_dag_runner import AirflowPipelineConfig
 
-from tfx_gpt2.templates.local_custom_language_pipeline import create_pipeline
+from tfx_gpt2.templates.mongo_custom_language_pipeline import create_pipeline
+
+mongo_ip = "localhost"
+mongo_colnames = ["zeit",
+                  "spiegel",
+                  "bild"]
 
 model_name = "117M"
 
 text_dir = "./data"
-text_token_size = 5000  # https://github.com/rkfg/gpt-2/issues/4
+text_token_size = 40000  # https://github.com/rkfg/gpt-2/issues/4
 
 mlflow_tracking_url = "http://127.0.0.1:5000"
 
@@ -36,11 +41,12 @@ output_dir = "./output"
 pipeline = create_pipeline(pipeline_name=os.path.basename(__file__),
                            pipeline_root=output_dir,
                            model_name=model_name,
-                           text_dir=text_dir,
                            text_token_size=text_token_size,
-                           mlflow_tracking_url=mlflow_tracking_url,
                            train_config=train_config,
-                           enable_cache=True)
+                           mongo_colnames=mongo_colnames,
+                           mongo_ip=mongo_ip,
+                           enable_cache=True,
+                           mlflow_tracking_url=mlflow_tracking_url)
 
 airflow_config = {'schedule_interval': "@once",  # every 30 minutes
                   'start_date': datetime(1998, 2, 23, 8),  # year, month, day, hour
