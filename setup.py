@@ -39,7 +39,10 @@ setup(
                       "apache-beam==2.16.0",
                       "mlflow==1.11.0",
                       "pymongo==3.11.0",
-                      "tokenizers==0.8.1"],
+                      "tokenizers==0.8.1",
+                      "google-cloud-bigquery",
+                      "absl-py==0.7",
+                      "pandas==0.24"],
     license=about['__license__'],
     zip_safe=False,
     classifiers=[
