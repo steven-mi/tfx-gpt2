@@ -35,7 +35,7 @@ setup(
                       "tensorflow==1.15.0",
                       "tensorflow-serving-api==1.15.0",
                       "tfx==0.15.0",
-                      "pyarrow==0.15.1",
+                      "pyarrow==0.14.0",
                       "apache-beam==2.16.0",
                       "mlflow==1.11.0",
                       "pymongo==3.11.0",
