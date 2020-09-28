@@ -39,7 +39,8 @@ def randomize(context, hparams, p):
 
 def train_gpt2(dataset_dir, checkpoint_dir, encoding_dir,
                model_name, train_config, encoding,
-               trained_checkpoint_dir, sample_dir, tensorboard_dir):
+               trained_checkpoint_dir, sample_dir, tensorboard_dir,
+               end_token):
     enc = encoder.get_encoder(encoding_dir)
     hparams = model.default_hparams()
     with open(os.path.join(encoding_dir, 'hparams.json')) as f:
@@ -109,7 +110,7 @@ def train_gpt2(dataset_dir, checkpoint_dir, encoding_dir,
             os.path.join(tensorboard_dir))
 
         saver = tf.train.Saver(
-            var_list=all_vars,
+            var_list=train_vars,
             max_to_keep=5,
             keep_checkpoint_every_n_hours=2)
         sess.run(tf.global_variables_initializer())
@@ -123,7 +124,8 @@ def train_gpt2(dataset_dir, checkpoint_dir, encoding_dir,
             logging.info("Loading checkpoint failed - training from scratch")
 
         logging.info('Loading dataset...')
-        chunks = load_dataset(enc, dataset_dir, encoding=encoding)
+        chunks = load_dataset(enc, dataset_dir, encoding=encoding, end_token=end_token)
+        logging.info('Loading dataset to sampler')
         data_sampler = Sampler(chunks)
         logging.info('dataset has', data_sampler.total_size, 'tokens')
 
@@ -155,9 +157,8 @@ def train_gpt2(dataset_dir, checkpoint_dir, encoding_dir,
                     tf_sample,
                     feed_dict={context: train_config["batch_size"] * [context_tokens]})
                 for i in range(min(train_config["sample_num"] - index, train_config["batch_size"])):
-                    text = enc.decode(out[i])
-                    text = '======== SAMPLE {} ========\n{}\n'.format(
-                        index + 1, text)
+                    text = 'Input: {} ======== SAMPLE {} ========\n{}\n'.format(enc.decode(context_tokens),
+                                                                                index + 1, enc.decode(out[i]))
                     all_text.append(text)
                     index += 1
             with open(os.path.join(sample_dir, 'samples-{}').format(counter), 'w', encoding=encoding) as fp:
@@ -208,7 +209,7 @@ class Executor(base_executor.BaseExecutor):
         model_name = exec_properties["model_name"]
         encoding = exec_properties["encoding"]
         train_config = exec_properties["train_config"]
-
+        end_token = exec_properties["end_token"]
         dataset_dir = get_single_uri(input_dict["dataset_dir"])
         checkpoint_dir = get_single_uri(input_dict["checkpoint_dir"])
         encoding_dir = get_single_uri(input_dict["encoding_dir"])
@@ -226,7 +227,8 @@ class Executor(base_executor.BaseExecutor):
                                            encoding=encoding,
                                            trained_checkpoint_dir=trained_checkpoint_dir,
                                            sample_dir=sample_dir,
-                                           tensorboard_dir=tensorboard_dir)
+                                           tensorboard_dir=tensorboard_dir,
+                                           end_token=end_token)
 
         with open(os.path.join(hyperparameter_dir, 'hyperparameter.pickle'), 'wb') as handle:
             pickle.dump(train_config, handle, protocol=pickle.HIGHEST_PROTOCOL)
@@ -238,6 +240,7 @@ class TrainGPT2Spec(types.ComponentSpec):
     PARAMETERS = {
         'model_name': ExecutionParameter(type=Text),
         'encoding': ExecutionParameter(type=Text),
+        'end_token': ExecutionParameter(type=Text),
         'train_config': ExecutionParameter(type=Dict),
     }
 
@@ -266,7 +269,8 @@ class TrainGPT2(base_component.BaseComponent):
                  encoding_dir: types.Channel,
                  model_name: Text,
                  train_config: Dict,
-                 encoding: Text = 'utf-8'):
+                 encoding: Text = 'utf-8',
+                 end_token: Text = ""):
         trained_checkpoint_dir = external_input("TrainGPT2")
         sample_dir = external_input("TrainGPT2")
         tensorboard_dir = external_input("TrainGPT2")
@@ -283,6 +287,7 @@ class TrainGPT2(base_component.BaseComponent):
                              sample_dir=sample_dir,
                              hyperparameter_dir=hyperparameter_dir,
                              metric_dir=metric_dir,
-                             tensorboard_dir=tensorboard_dir)
+                             tensorboard_dir=tensorboard_dir,
+                             end_token=end_token)
 
         super(TrainGPT2, self).__init__(spec=spec)

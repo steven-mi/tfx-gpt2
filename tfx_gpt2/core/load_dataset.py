@@ -24,10 +24,10 @@ def load_dataset(enc, path, encoding=None, end_token=None):
                 raw_text = ''
                 for line in file:
                     raw_text += line
-                    if end_token in line:
+                    if end_token and end_token in line:
                         tokens = np.stack(enc.encode(raw_text))
                         token_chunks.append(tokens)
-                        raw_text=""
+                        raw_text = ""
     return token_chunks
 
 
