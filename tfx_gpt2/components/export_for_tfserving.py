@@ -29,7 +29,7 @@ def export_for_serving(encoding_dir, checkpoint_dir, export_dir, train_config, s
     hparams = model.default_hparams()
     with open(os.path.join(encoding_dir, 'hparams.json')) as f:
         hparams.override_from_dict(json.load(f))
-    length = hparams.n_ctx - 10
+    length = hparams.n_ctx // 2
 
     with tf.Session(graph=tf.Graph()) as sess:
         context = tf.placeholder(tf.int32, [train_config["batch_size"], None])
