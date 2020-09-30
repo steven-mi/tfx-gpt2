@@ -165,7 +165,7 @@ def train_gpt2(dataset_dir, checkpoint_dir, encoding_dir,
                 fp.write('\n'.join(all_text))
 
         def sample_batch():
-            return [data_sampler.sample(1024) for _ in range(train_config["batch_size"])]
+            return [data_sampler.sample(train_config["sample_length"]) for _ in range(train_config["batch_size"])]
 
         avg_loss = (0.0, 0.0)
         start_time = time.time()

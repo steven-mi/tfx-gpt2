@@ -34,7 +34,7 @@ class Executor(base_executor.BaseExecutor):
         encoding_dir = get_single_uri(output_dict["encoding_dir"])
 
         logging.info("Training BPE Tokenizer")
-        tokenizer = ByteLevelBPETokenizer(end_of_word_suffix=end_token, lowercase=True)
+        tokenizer = ByteLevelBPETokenizer(lowercase=False)
         for (dirpath, _, fnames) in os.walk(merged_text_dir):
             for fname in fnames:
                 file_path = os.path.join(dirpath, fname)
