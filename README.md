@@ -73,17 +73,11 @@ Look at the [Paper](https://openai.com/blog/better-language-models/) for perform
 
 ## Training recommendations
 - GPT-2 models' robustness and worst case behaviors are not well-understood. As with any machine-learned model, carefully evaluate GPT-2 for your use case, especially if used without fine-tuning or in safety-critical applications where reliability is important.
-- The dataset our GPT-2 models were trained on contains many texts with biases and factual inaccuracies, and thus GPT-2 models are likely to be biased and inaccurate as well.
-- To avoid having samples mistaken as human-written, we recommend clearly labeling samples as synthetic before wide dissemination. Our models are often incoherent or inaccurate in subtle ways, which takes more than a quick read for a human to notice.
 
 From [gpt-2-simple](https://github.com/minimaxir/gpt-2-simple): The method GPT-2 uses to generate text is slightly different than those like other packages like textgenrnn (specifically, generating the full text sequence purely in the GPU and decoding it later), which cannot easily be fixed without hacking the underlying model code. As a result:
 - In general, GPT-2 is better at maintaining context over its entire generation length, making it good for generating conversational text. The text is also generally gramatically correct, with proper capitalization and few typoes.
 - The original GPT-2 model was trained on a very large variety of sources, allowing the model to incorporate idioms not seen in the input text.
-- GPT-2 can only generate a maximum of 1024 tokens per request (about 3-4 paragraphs of English text).
 - GPT-2 cannot stop early upon reaching a specific end token. (workaround: pass the truncate parameter to a generate function to only collect text until a specified end token. You may want to reduce length appropriately.)
 - Higher temperatures work better (e.g. 0.7 - 1.0) to generate more interesting text, while other frameworks work better between 0.2 - 0.5.
 - GPT-2 allows you to generate texts in parallel by setting a batch_size that is divisible into nsamples, resulting in much faster generation. Works very well with a GPU (can set batch_size up to 20 on Colaboratory's K80)!
 - Due to GPT-2's architecture, it scales up nicely with more powerful GPUs. For the 124M model, if you want to train for longer periods of time, GCP's P100 GPU is about 3x faster than a K80/T4 for only 3x the price, making it price-comparable (the V100 is about 1.5x faster than the P100 but about 2x the price). The P100 uses 100% of the GPU even with batch_size=1, and about 88% of the V100 GPU.
-- If you have a partially-trained GPT-2 model and want to continue finetuning it, you can set overwrite=True to finetune, which will continue training and remove the previous iteration of the model without creating a duplicate copy. This can be especially useful for transfer learning (e.g. heavily finetune GPT-2 on one dataset, then finetune on other dataset to get a "merging" of both datasets).
-- The 774M "large" model may support finetuning because it will cause modern GPUs to go out-of-memory (you may get lucky if you use a P100 GPU on Colaboratory). However, you can still generate from the default pretrained model using gpt2.load_gpt2(sess, model_name='774M') and gpt2.generate(sess, model_name='774M').
-- The 1558M "extra large", true model, may not work out-of-the-box with the GPU included with the Colaboratory Notebook. More testing is needed to identify optimial configurations for it.
