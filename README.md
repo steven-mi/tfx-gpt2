@@ -67,8 +67,8 @@ Look at the [Paper](https://openai.com/blog/better-language-models/) for perform
 | ----------------- | ------ | ------------------------------------------------------------ |
 | `117M`<br/>`124M` | 12     | Could be trained on a CPU or a single for a reasonable amount of time |
 | `345M`<br/>`355M` | 24     | Could be trained on a single GPU for a reasonable amount of time |
-| `774M`            | 36     | Not recommended. If you have enough ressources for training this model, then `1558M` should be fine too. |
-| `1558M`           | 48     | Largest model trained. Known for super human performance (see: https://openai.com/blog/better-language-models/) |
+| `774M`            | 36     | Learned to love it. Largest model I could run on my work machine. If you have enough ressources - go for it. |
+| `1558M`           | 48     | Largest model trained. Probably won't run on a single consumer GPU. Known for super human performance (see: https://openai.com/blog/better-language-models/) |
 
 
 ## Training recommendations
