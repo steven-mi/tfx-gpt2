@@ -1,5 +1,4 @@
 import os
-
 from datetime import datetime
 
 from tfx.orchestration.airflow.airflow_dag_runner import AirflowDagRunner
