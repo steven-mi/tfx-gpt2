@@ -32,10 +32,17 @@ class Executor(base_executor.BaseExecutor):
         merged_text_dir = get_single_uri(input_dict["merged_text_dir"])
         encoding_dir = get_single_uri(input_dict["encoding_dir"])
         end_token = exec_properties["end_token"]
+        logging.info("encoding as: {}".format(encoding))
+        logging.info("merged text dir: {}".format(merged_text_dir))
+        logging.info("encoding dir: {}".format(encoding_dir))
+        logging.info("ending tokens: {}".format(end_token))
 
         logging.info('Reading files')
         enc = encoder.get_encoder(encoding_dir)
+
         chunks = load_dataset(enc, merged_text_dir, encoding=encoding, end_token=end_token)
+        logging.info("chunk size: {}".format(len(chunks)))
+        logging.info("top 10 chunkds {}".format(chunks[:10]))
 
         dataset_path = os.path.join(get_single_uri(output_dict["dataset_dir"]), "dataset.npz")
         logging.info('Writing', dataset_path)
