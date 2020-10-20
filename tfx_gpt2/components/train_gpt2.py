@@ -111,7 +111,7 @@ def train_gpt2(dataset_dir, checkpoint_dir, encoding_dir,
 
         saver = tf.train.Saver(
             var_list=train_vars,
-            max_to_keep=5,
+            max_to_keep=None,
             keep_checkpoint_every_n_hours=2)
         sess.run(tf.global_variables_initializer())
 
