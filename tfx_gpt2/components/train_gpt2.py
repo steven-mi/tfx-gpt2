@@ -159,7 +159,7 @@ def train_gpt2(dataset_dir, checkpoint_dir, encoding_dir,
                     tf_sample,
                     feed_dict={context: train_config["batch_size"] * [context_tokens]})
                 for i in range(min(train_config["sample_num"] - index, train_config["batch_size"])):
-                    text = 'Input: {} ======== SAMPLE {} ========\n{}\n'.format(enc.decode(context_tokens),
+                    text = 'Input: {} ======== SAMPLE {} ========\n{}\n'.format(enc.decode(out),
                                                                                 index + 1, enc.decode(out[i]))
                     all_text.append(text)
                     index += 1
