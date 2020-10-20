@@ -151,18 +151,17 @@ def train_gpt2(dataset_dir, checkpoint_dir, encoding_dir,
 
         def generate_samples():
             logging.info('Generating samples...')
-            context_tokens = data_sampler.sample(train_config["batch_size"])
+            context_tokens = data_sampler.sample(1)
             all_text = []
-            index = 0
-            while index < train_config["sample_num"]:
+
+            for index in range(train_config["sample_num"]):
                 out = sess.run(
                     tf_sample,
                     feed_dict={context: train_config["batch_size"] * [context_tokens]})
-                for i in range(min(train_config["sample_num"] - index, train_config["batch_size"])):
-                    text = 'Input: {} ======== SAMPLE {} ========\n{}\n'.format(enc.decode(out),
-                                                                                index + 1, enc.decode(out[i]))
+                for i in range(train_config["batch_size"]):
+                    text = enc.decode(out[i])
+                    text = '======== SAMPLE {} ========\n{}\n'.format(index + 1, text)
                     all_text.append(text)
-                    index += 1
             with open(os.path.join(sample_dir, 'samples-{}').format(counter), 'w', encoding=encoding) as fp:
                 fp.write('\n'.join(all_text))
 
