@@ -68,7 +68,8 @@ def train_gpt2(dataset_dir, checkpoint_dir, encoding_dir,
             batch_size=train_config["batch_size"],
             temperature=1.0,
             top_k=train_config["top_k"],
-            top_p=train_config["top_p"])
+            top_p=train_config["top_p"],
+            start_token=end_token)
 
         all_vars = [v for v in tf.trainable_variables() if 'model' in v.name]
         train_vars = [v for v in all_vars if '/h' in v.name] if train_config[
@@ -127,7 +128,9 @@ def train_gpt2(dataset_dir, checkpoint_dir, encoding_dir,
         chunks = load_dataset(enc, dataset_dir, encoding=encoding, end_token=end_token)
         logging.info('Loading dataset to sampler')
         data_sampler = Sampler(chunks)
-        logging.info('dataset has', data_sampler.total_size, 'tokens')
+        logging.info('Sample 1: {}'.format(data_sampler.sample(1)))
+        logging.info('Sample 1: {}'.format(data_sampler.sample(1)))
+        logging.info('dataset has {} tokens'.format(data_sampler.total_size))
 
         logging.info('Training {}...'.format(model_name))
         counter = 1
@@ -149,7 +152,7 @@ def train_gpt2(dataset_dir, checkpoint_dir, encoding_dir,
 
         def generate_samples():
             logging.info('Generating samples...')
-            context_tokens = data_sampler.sample(1)
+            context_tokens = data_sampler.sample(train_config["batch_size"])
             all_text = []
             index = 0
             while index < train_config["sample_num"]:
