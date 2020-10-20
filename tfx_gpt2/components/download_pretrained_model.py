@@ -1,5 +1,6 @@
 import os
 import requests
+import logging
 
 from tqdm import tqdm
 
@@ -28,12 +29,14 @@ class Executor(base_executor.BaseExecutor):
 
         model_dir = get_single_uri(output_dict["model_dir"])
         model_name = exec_properties["model_name"]
+        logging.info("Downloading pretrained model of {}".format(model_name))
+        logging.info("Storing pretrained mdoel to {}".format(model_dir))
 
         subdir = os.path.join('models', model_name)
         subdir = subdir.replace('\\', '/')  # needed for Windows
-
         for filename in ['checkpoint', 'encoder.json', 'hparams.json', 'model.ckpt.data-00000-of-00001',
                          'model.ckpt.index', 'model.ckpt.meta', 'vocab.bpe']:
+            logging.info("Getting {}".format(filename))
             # get file from storage server
             r = requests.get("https://storage.googleapis.com/gpt-2/" + subdir + "/" + filename, stream=True)
             # save to output path

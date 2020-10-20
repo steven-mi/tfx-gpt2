@@ -31,6 +31,12 @@ class Executor(base_executor.BaseExecutor):
         model_dir = get_single_uri(input_dict["model_dir"])
         merged_text_dir = get_single_uri(input_dict["merged_text_dir"])
         encoding_dir = get_single_uri(output_dict["encoding_dir"])
+        logging.info("encoding as: {}".format(encoding))
+        logging.info("text token size: {}".format(text_token_size))
+        logging.info("end token: {}".format(end_token))
+        logging.info("model directory: {}".format(model_dir))
+        logging.info("merged text directory: {}".format(merged_text_dir))
+        logging.info("encoding directory: {}".format(encoding_dir))
 
         logging.info("Training BPE Tokenizer")
         tokenizer = ByteLevelBPETokenizer(lowercase=False, end_of_word_suffix=end_token)
@@ -38,8 +44,10 @@ class Executor(base_executor.BaseExecutor):
             for fname in fnames:
                 file_path = os.path.join(dirpath, fname)
                 if os.path.isfile(file_path):
+                    logging.info("training on {}".format(file_path))
                     tokenizer.train([file_path], vocab_size=text_token_size)
 
+        logging.info("Storing BPE Tokenizer")
         encoder_file, vocab_file = tokenizer.save_model(encoding_dir)
         os.rename(encoder_file, os.path.join(encoding_dir, "encoder.json"))
         os.rename(vocab_file, os.path.join(encoding_dir, "vocab.bpe"))

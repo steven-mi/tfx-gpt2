@@ -127,7 +127,9 @@ def train_gpt2(dataset_dir, checkpoint_dir, encoding_dir,
         chunks = load_dataset(enc, dataset_dir, encoding=encoding, end_token=end_token)
         logging.info('Loading dataset to sampler')
         data_sampler = Sampler(chunks)
-        logging.info('dataset has', data_sampler.total_size, 'tokens')
+        logging.info('Sample 1: {}'.format(data_sampler.sample(1)))
+        logging.info('Sample 1: {}'.format(data_sampler.sample(1)))
+        logging.info('dataset has {} tokens'.format(data_sampler.total_size))
 
         logging.info('Training {}...'.format(model_name))
         counter = 1
@@ -149,7 +151,7 @@ def train_gpt2(dataset_dir, checkpoint_dir, encoding_dir,
 
         def generate_samples():
             logging.info('Generating samples...')
-            context_tokens = data_sampler.sample(1)
+            context_tokens = data_sampler.sample(train_config["batch_size"])
             all_text = []
             index = 0
             while index < train_config["sample_num"]:
@@ -157,7 +159,7 @@ def train_gpt2(dataset_dir, checkpoint_dir, encoding_dir,
                     tf_sample,
                     feed_dict={context: train_config["batch_size"] * [context_tokens]})
                 for i in range(min(train_config["sample_num"] - index, train_config["batch_size"])):
-                    text = 'Input: {} ======== SAMPLE {} ========\n{}\n'.format(enc.decode(context_tokens),
+                    text = 'Input: {} ======== SAMPLE {} ========\n{}\n'.format(enc.decode(out),
                                                                                 index + 1, enc.decode(out[i]))
                     all_text.append(text)
                     index += 1

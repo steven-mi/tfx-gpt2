@@ -28,33 +28,41 @@ class Executor(base_executor.BaseExecutor):
            exec_properties: Dict[Text, Any]) -> None:
         encoding = exec_properties["encoding"]
         end_token = exec_properties["end_token"]
-
         text_dir = exec_properties["text_dir"]
         merged_text_dir = get_single_uri(output_dict["merged_text_dir"])
         merged_text_path = os.path.join(merged_text_dir, "merged_text")
+        logging.info("encoding as: {}".format(encoding))
+        logging.info("end token: {}".format(end_token))
+        logging.info("text directory: {}".format(text_dir))
+        logging.info("merged text path: {}".format(merged_text_path))
 
+        logging.info("Start processing")
         raw_text = ''
         for (dirpath, _, fnames) in os.walk(text_dir):
             for fname in fnames:
                 file_path = os.path.join(dirpath, fname)
+                logging.info("found file {}".format(file_path))
 
                 if file_path.endswith('.csv'):
                     df = pd.read_csv(file_path)
                     for index, row in df.iterrows():
                         raw_text += row["text"] + end_token
-                elif "wiki" in fname:
-                    for line in open(file_path, 'r'):
-                        raw_text += json.loads(line)["text"] + end_token
+                elif file_path.endswith('.json') or "wiki" in file_path:
+                    with open(file_path, 'r') as file:
+                        json_data = json.loads(file.read())
+                        for data in json_data:
+                            if data.get("text", None):
+                                raw_text = raw_text + data["text"] + end_token
                 else:
                     # Plain text
                     with open(file_path, 'r', encoding=encoding) as fp:
                         raw_text += fp.read() + end_token
 
+                logging.info("Writing to merged text path")
                 with open(merged_text_path, "a") as text_file:
                     text_file.write(raw_text)
                 raw_text = ''
         logging.info("Saved merged text to {}".format(merged_text_dir))
-        return 0
 
 
 class CreateMergedTextSpec(types.ComponentSpec):
