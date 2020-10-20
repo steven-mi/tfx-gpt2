@@ -68,8 +68,7 @@ def train_gpt2(dataset_dir, checkpoint_dir, encoding_dir,
             batch_size=train_config["batch_size"],
             temperature=1.0,
             top_k=train_config["top_k"],
-            top_p=train_config["top_p"],
-            start_token=end_token)
+            top_p=train_config["top_p"])
 
         all_vars = [v for v in tf.trainable_variables() if 'model' in v.name]
         train_vars = [v for v in all_vars if '/h' in v.name] if train_config[

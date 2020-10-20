@@ -42,7 +42,8 @@ setup(
                       "tokenizers==0.8.1",
                       "google-cloud-bigquery",
                       "absl-py==0.7",
-                      "pandas==0.24"],
+                      "pandas==0.24",
+                      "pyyaml==3.12"],
     license=about['__license__'],
     zip_safe=False,
     classifiers=[
