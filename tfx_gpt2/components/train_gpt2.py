@@ -45,12 +45,14 @@ def train_gpt2(dataset_dir, checkpoint_dir, encoding_dir,
     logging.info("checkpoint_dir:{}".format({checkpoint_dir}))
     logging.info("encoding_dir:{}".format({encoding_dir}))
     logging.info("model_name:{}".format({model_name}))
-    logging.info("train_config:{}".format({train_config}))
     logging.info("encoding:{}".format({encoding}))
     logging.info("trained_checkpoint_dir:{}".format({trained_checkpoint_dir}))
     logging.info("sample_dir:{}".format({sample_dir}))
     logging.info("tensorboard_dir:{}".format({tensorboard_dir}))
     logging.info("end_token:{}".format({end_token}))
+    logging.info("train config:")
+    for k, v in train_config.items():
+        logging.info("{}{}".format(k, v))
 
     enc = encoder.get_encoder(encoding_dir)
     hparams = model.default_hparams()
