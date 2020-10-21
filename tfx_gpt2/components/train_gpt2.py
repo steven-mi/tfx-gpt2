@@ -41,6 +41,17 @@ def train_gpt2(dataset_dir, checkpoint_dir, encoding_dir,
                model_name, train_config, encoding,
                trained_checkpoint_dir, sample_dir, tensorboard_dir,
                end_token):
+    logging.info("dataset_dir:{}".format({dataset_dir}))
+    logging.info("checkpoint_dir:{}".format({checkpoint_dir}))
+    logging.info("encoding_dir:{}".format({encoding_dir}))
+    logging.info("model_name:{}".format({model_name}))
+    logging.info("train_config:{}".format({train_config}))
+    logging.info("encoding:{}".format({encoding}))
+    logging.info("trained_checkpoint_dir:{}".format({trained_checkpoint_dir}))
+    logging.info("sample_dir:{}".format({sample_dir}))
+    logging.info("tensorboard_dir:{}".format({tensorboard_dir}))
+    logging.info("end_token:{}".format({end_token}))
+
     enc = encoder.get_encoder(encoding_dir)
     hparams = model.default_hparams()
     with open(os.path.join(encoding_dir, 'hparams.json')) as f:

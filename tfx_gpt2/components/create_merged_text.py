@@ -47,7 +47,7 @@ class Executor(base_executor.BaseExecutor):
                     df = pd.read_csv(file_path)
                     for index, row in df.iterrows():
                         raw_text += row["text"] + end_token
-                elif file_path.endswith('.json') or "wiki" in file_path:
+                elif file_path.endswith('.json'):
                     with open(file_path, 'r') as file:
                         json_data = json.loads(file.read())
                         for data in json_data:
