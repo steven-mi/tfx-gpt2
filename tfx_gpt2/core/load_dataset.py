@@ -12,22 +12,27 @@ def load_dataset(enc, path, encoding=None, end_token=None):
             paths.append(os.path.join(dirpath, fname))
 
     token_chunks = []
-    for path in tqdm.tqdm(paths):
+    for path in paths:
+        logging.info("loading file from {}".format("path"))
         if path.endswith('.npz'):
             # Pre-encoded
+            logging.info("found .npz, loading pre encoded dataset")
             with np.load(path) as npz:
                 for item in npz.files:
                     token_chunks.append(npz[item])
         else:
             # big merged text
             with open(path) as file:
-                raw_text = ''
-                for line in file:
-                    raw_text += line
-                    if end_token and end_token in line:
-                        tokens = np.stack(enc.encode(raw_text))
+                logging.info("found merged text")
+                raw_text = file.read()
+                logging.info("merged text has len {}".format(len(raw_text)))
+                raw_text = raw_text.split(end_token)
+                logging.info("and {} text documents".format(len(raw_text)))
+                for text in raw_text:
+                    if text:
+                        tokens = np.stack(enc.encode(text))
                         token_chunks.append(tokens)
-                        raw_text = ""
+    logging.info("found {} tokens".format("token_chunks"))
     return token_chunks
 
 
