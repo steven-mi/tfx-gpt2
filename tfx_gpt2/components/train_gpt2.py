@@ -41,6 +41,19 @@ def train_gpt2(dataset_dir, checkpoint_dir, encoding_dir,
                model_name, train_config, encoding,
                trained_checkpoint_dir, sample_dir, tensorboard_dir,
                end_token):
+    logging.info("dataset_dir:{}".format({dataset_dir}))
+    logging.info("checkpoint_dir:{}".format({checkpoint_dir}))
+    logging.info("encoding_dir:{}".format({encoding_dir}))
+    logging.info("model_name:{}".format({model_name}))
+    logging.info("encoding:{}".format({encoding}))
+    logging.info("trained_checkpoint_dir:{}".format({trained_checkpoint_dir}))
+    logging.info("sample_dir:{}".format({sample_dir}))
+    logging.info("tensorboard_dir:{}".format({tensorboard_dir}))
+    logging.info("end_token:{}".format({end_token}))
+    logging.info("train config:")
+    for k, v in train_config.items():
+        logging.info("{}{}".format(k, v))
+
     enc = encoder.get_encoder(encoding_dir)
     hparams = model.default_hparams()
     with open(os.path.join(encoding_dir, 'hparams.json')) as f:
@@ -111,7 +124,7 @@ def train_gpt2(dataset_dir, checkpoint_dir, encoding_dir,
 
         saver = tf.train.Saver(
             var_list=train_vars,
-            max_to_keep=5,
+            max_to_keep=None,
             keep_checkpoint_every_n_hours=2)
         sess.run(tf.global_variables_initializer())
 
@@ -151,18 +164,17 @@ def train_gpt2(dataset_dir, checkpoint_dir, encoding_dir,
 
         def generate_samples():
             logging.info('Generating samples...')
-            context_tokens = data_sampler.sample(train_config["batch_size"])
+            context_tokens = data_sampler.sample(1)
             all_text = []
-            index = 0
-            while index < train_config["sample_num"]:
+
+            for index in range(train_config["sample_num"]):
                 out = sess.run(
                     tf_sample,
                     feed_dict={context: train_config["batch_size"] * [context_tokens]})
-                for i in range(min(train_config["sample_num"] - index, train_config["batch_size"])):
-                    text = 'Input: {} ======== SAMPLE {} ========\n{}\n'.format(enc.decode(out),
-                                                                                index + 1, enc.decode(out[i]))
+                for i in range(train_config["batch_size"]):
+                    text = enc.decode(out[i])
+                    text = '======== SAMPLE {} ========\n{}\n'.format(index + 1, text)
                     all_text.append(text)
-                    index += 1
             with open(os.path.join(sample_dir, 'samples-{}').format(counter), 'w', encoding=encoding) as fp:
                 fp.write('\n'.join(all_text))
 
