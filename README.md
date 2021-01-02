@@ -71,6 +71,9 @@ Look at the [Paper](https://openai.com/blog/better-language-models/) for perform
 | `774M`            | 36     | Learned to love it. Largest model I could run on my work machine. If you have enough ressources - go for it. |
 | `1558M`           | 48     | Largest model trained. Probably won't run on a single consumer GPU. Known for super human performance (see: https://openai.com/blog/better-language-models/) |
 
+## Examples
+- [gpt2-tfx-pipeline-airflow-setup)](https://github.com/NewsPipe/gpt2-tfx-pipeline-airflow-setup): Example for setting up Airflow with the pipeline
+- [gpt2-tfx-pipeline-code-dataset-example](https://github.com/NewsPipe/gpt2-tfx-pipeline-code-dataset-example): Example for using the pipeline for training GPT-2 on Python code
 
 ## Training recommendations
 - GPT-2 models' robustness and worst case behaviors are not well-understood. As with any machine-learned model, carefully evaluate GPT-2 for your use case, especially if used without fine-tuning or in safety-critical applications where reliability is important.
