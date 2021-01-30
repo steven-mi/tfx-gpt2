@@ -42,23 +42,6 @@ mlflow server --backend-store-uri sqlite:///mlflow.d --default-artifact-root ./m
 tensorboard --logdir ./outputs
 ```
 
-### Run with Apache Airflow
-
-```bash
-# ... setup airflow
-# copy files to dag folder
-cp airflow-local-example.py $AIRFLOW_HOME/dags
-cp -r data $AIRFLOW_HOME/dags
-# start scheduler and executor
-airflow scheduler -D
-airflow webserver 
-# go to localhost:8080 an start the DAG
-# outputs are stored in $AIRFLOW_HOME/dags and can be changed in airflow-local-example.py
-cd $AIRFLOW_HOME/dags
-mlflow server --backend-store-uri sqlite:///mlflow.d --default-artifact-root ./mlruns
-tensorboard --logdir ./outputs
-```
-
 
 ## List of available models
 
