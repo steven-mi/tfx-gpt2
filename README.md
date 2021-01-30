@@ -27,9 +27,9 @@ This repository contains code for creating a end-end TFX pipeline for GPT-2. The
 
 ### Install package
 ```bash
-git clone https://github.com/steven-mi/tfx-gpt2.git
-cd tfx-gpt2
-pip indstall tfx-gpt2
+git clone https://github.com/NewsPipe/gpt2-tfx-pipeline.git
+cd gpt2-tfx-pipeline
+pip indstall .
 ```
 
 ### Run pipeline with Apache Beam
