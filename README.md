@@ -76,8 +76,6 @@ Look at the [Paper](https://openai.com/blog/better-language-models/) for perform
 - [gpt2-tfx-pipeline-code-dataset-example](https://github.com/NewsPipe/gpt2-tfx-pipeline-code-dataset-example): Example for using the pipeline for training GPT-2 on Python code
 
 ## Training recommendations
-- GPT-2 models' robustness and worst case behaviors are not well-understood. As with any machine-learned model, carefully evaluate GPT-2 for your use case, especially if used without fine-tuning or in safety-critical applications where reliability is important.
-
 From [gpt-2-simple](https://github.com/minimaxir/gpt-2-simple): The method GPT-2 uses to generate text is slightly different than those like other packages like textgenrnn (specifically, generating the full text sequence purely in the GPU and decoding it later), which cannot easily be fixed without hacking the underlying model code. As a result:
 - In general, GPT-2 is better at maintaining context over its entire generation length, making it good for generating conversational text. The text is also generally gramatically correct, with proper capitalization and few typoes.
 - The original GPT-2 model was trained on a very large variety of sources, allowing the model to incorporate idioms not seen in the input text.
@@ -85,3 +83,8 @@ From [gpt-2-simple](https://github.com/minimaxir/gpt-2-simple): The method GPT-2
 - Higher temperatures work better (e.g. 0.7 - 1.0) to generate more interesting text, while other frameworks work better between 0.2 - 0.5.
 - GPT-2 allows you to generate texts in parallel by setting a batch_size that is divisible into nsamples, resulting in much faster generation. Works very well with a GPU (can set batch_size up to 20 on Colaboratory's K80)!
 - Due to GPT-2's architecture, it scales up nicely with more powerful GPUs. For the 124M model, if you want to train for longer periods of time, GCP's P100 GPU is about 3x faster than a K80/T4 for only 3x the price, making it price-comparable (the V100 is about 1.5x faster than the P100 but about 2x the price). The P100 uses 100% of the GPU even with batch_size=1, and about 88% of the V100 GPU.
+
+
+## Notes
+- GPT-2 models' robustness and worst case behaviors are not well-understood. As with any machine-learned model, carefully evaluate GPT-2 for your use case, especially if used without fine-tuning or in safety-critical applications where reliability is important.
+
